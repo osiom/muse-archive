@@ -1,13 +1,11 @@
 ---
-type: horizon
-number: 1
-slug: horizon-001-future-lab
 title: Future Lab & Co-Creation
 muse: solis                # Well-being · #D48348 (derived from MUSES)
 status: closed
 year: 2024
-location: Carezzano, Colli Tortonesi · Italy
-hero: comet-collabs/campaign-footage/Horizon001/DJI_0537-1024x768.jpg
+location:                  # list — one entry per place
+  - Carezzano, Colli Tortonesi · Italy
+hero: DJI_0537-1024x768.jpg   # resolves to assets/images/horizon001/DJI_0537-1024x768.jpg
 images: []
 
 # Horizon factual block

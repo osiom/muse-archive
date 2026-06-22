@@ -1,12 +1,10 @@
 ---
-type: stardust
-number: 2
-slug: stardust-002-practicing-futures
 title: Practicing Futures
 muse: solis                # Well-being · #D48348 (derived from MUSES)
 status: upcoming
 year: 2026
-location: Colli Tortonesi · Italy
+location:                  # list — one entry per place
+  - Colli Tortonesi · Italy
 hero:                      # none yet → muse-colour placeholder tile
 images: []
 

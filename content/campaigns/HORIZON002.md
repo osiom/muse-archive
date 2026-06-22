@@ -1,12 +1,13 @@
 ---
-type: horizon
-number: 2
-slug: horizon-002-open-charter
 title: Manifesto                   # voice-safe public title (avoids "decentralised/DAO" — see plan §8.9)
 muse:                              # intentionally blank — cause assigned later (charter not final, plan §8.9); no muse → neutral placeholder tile
 status: upcoming
 year: 2027                         # pilot: 4 Future Labs, mid-2027 [confirm]
-location: Berlin · Krefeld · Salzburg · Tortona   # 4 countries [confirm]
+location:                          # list — one entry per place [confirm]
+  - Berlin
+  - Krefeld
+  - Salzburg
+  - Tortona
 hero:                             # none yet → muse-colour placeholder tile
 images: []
 

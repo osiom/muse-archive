@@ -1,13 +1,11 @@
 ---
-type: stardust
-number: 1
-slug: stardust-001-cantine-volpi
 title: Cantine Volpi
 muse: rabu                 # Human Rights · #8CB07F (derived from MUSES)
 status: closed
 year: 2025
-location: Volpedo, Alessandria · Italy
-hero: comet-collabs/campaign-footage/Stardust001/IMG_2364.jpg
+location:                  # list — one entry per place
+  - Volpedo, Alessandria · Italy
+hero: IMG_2364.jpg         # resolves to assets/images/stardust001/IMG_2364.jpg
 images: []
 
 # Stardust factual block

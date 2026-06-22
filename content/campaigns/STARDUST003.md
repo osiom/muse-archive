@@ -1,13 +1,11 @@
 ---
-type: stardust
-number: 3
-slug: stardust-003-memo-x-la-luna
 title: Memo × La Luna
 muse: shukra                       # Bio-diversity · #7F49A2 (derived from MUSES)
 status: upcoming
 year: 2026
-location: Silent Rixdorf, Berlin · Germany
-hero: comet-collabs/campaign-footage/Stardust003/HoGP.png
+location:                  # list — one entry per place
+  - Silent Rixdorf, Berlin · Germany
+hero: HoGP.png             # resolves to assets/images/stardust003/HoGP.png
 images: []
 
 # Stardust factual block
