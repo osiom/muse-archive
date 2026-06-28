@@ -19,6 +19,8 @@ see the 2026-06-23 section in [decisions.md](decisions.md). What's still open:
   *Naming note:* this content `filler` (a campaigns.json field) is **distinct** from the
   client-side `kind:'spacer'` muse-colour discs that pad the globe to 42 vertices (decision G-F).
   The client kind was renamed `filler` → `spacer` (2026-06-27) precisely to remove that collision.
+  Since G-H, `spacer` discs only appear as the **zero-dormant fallback** — the surplus vertices are
+  filled with repeated dormant-muse CTA discs whenever any cause is dormant (today they always are).
 
 ## Data schema
 

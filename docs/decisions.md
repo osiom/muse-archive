@@ -5,6 +5,60 @@
 > first. Earlier per-round build decisions live in
 > [archive/build-history.md](archive/build-history.md).
 
+## 2026-06-28 — Dormant-muse CTA discs on the globe (Memo + Claude)
+
+Turning the globe's dead decoration into a call to action. cocoex has 7 muses = 7 causes, but only
+some are "activated" (have a campaign); the rest were padded with inert `spacer` discs (G-F). Memo's
+idea: give each **dormant** cause an interactive invitation instead. Layer-4 only — a sanctioned
+extension of the globe (G-D's freeze was satisfied long ago; same rationale as the V-3/V-8 flip work).
+Brief: `edit2706.md` (its "globe out of scope" line is amended). Concept firmed in
+`~/.claude/plans/do-these-too-graceful-comet.md`; revised after Memo's review per
+`~/.claude/plans/there-are-so-many-mossy-deer.md`.
+
+- **G-H · Dormant causes become CTA discs (flip → invitation + `mailto:`); they REPEAT to fill the
+  globe; the list carries the same invitation.** The dormant muses = `MUSES` whose slug appears in NO
+  campaign's `muse` (computed against the FULL archive, not the per-load globe sample, so dormancy
+  doesn't flicker) — today Lunes/Water · Ares/Rewilding · Thunor/Renewable Energy · Dosei/Zero Hunger.
+  `buildItems` fills **all** the surplus vertices (those past the campaign leaves) with `kind:'muse-cta'`
+  tiles, **repeating** the dormant muses round-robin (each appears on several discs, like a campaign's
+  "leaves") — so today's 25 leaves + 17 CTAs = 42 and **no disc is blank**. The disc FRONT mirrors the
+  cocoex-website **muse-orbit disc**: just the real white **muse symbol** (the `<muse>-white.png` glyph,
+  NOT a generic mark — Memo) at ~78%, engraved, but at **0.5 opacity** so a dormant cause reads
+  **inactive/muted** (no cause word — it didn't fit). The flip BACK puts the **cause on the eyebrow
+  arch** (like a campaign card), the **muse NAME** ("Thunor") on its own line **above** a quiet "has no
+  campaign yet" status line (so all four read consistently), then the muse's myth hook (from `data.js`),
+  a shared body in cocoex voice (a Stardust turns an artist's work into Comets sold to fund the cause;
+  a Horizon gathers a community in a Future Lab) and a **`mailto:`** **"Start"** button prefilled to
+  cocoex's Proton address — NOT an Explore→record-page link (there is no record yet). Contact route is
+  `mailto:` by design: zero backend (honours B-1), no third party (honours the Proton/privacy stance).
+  Each tile gets a per-muse `slug` (`cta-<muse>`) so `arrangeOnGraph` keeps a muse's OWN repeats off
+  adjacent vertices (different muses adjacent is fine). The CTAs sit on the globe regardless of the
+  active filter (the gap they mark is a permanent archive fact). `spacer` discs (G-F) remain only as the
+  **zero-dormant fallback** (every cause activated → nothing to invite → pad with blank discs as before).
+  *Accessibility parity:* the globe flip is pointer-only, so the list view carries a distinct
+  **"Muses without a campaign yet"** sub-section. Its rows **reuse the archive's own `.observatory-list-*`
+  markup verbatim** (the muse-glyph "logo" + eyebrow `cause · No campaign yet` / name = muse / meta =
+  hook + a "Start →" arrow, with the list's glass-hover + inverse styling) so it reads as a sibling of
+  the real list, not a parallel style — the `mailto:` is the only difference from an archive row. It is
+  NOT injected INTO the campaign list (honours A-4 / list honesty) — a separate `<section>` with its own
+  heading, never an `<li>` in the campaign `<ul>`.
+  *Why:* the surplus vertices were dead decoration; repeating the dormant muses makes the GAP both
+  visible and *present* (Memo: "so many empty circles"), and inviting participation is genuine
+  campaigning, not filler. Using the real muse symbols (not a "+"), the muted orbit-disc look, the
+  muse-name headline + cocoex-voice body, and the reused list rows all keep it a sibling of what we
+  already built (Memo: "use what we already built together as reference").
+  *Apply:* `observatory.js` (`dormantMuseCTAs`/`ctaMailto`/CTA copy consts, `buildItems` repeat-to-fill,
+  `fillFlip` muse-cta branch, `renderInvite` reusing `.observatory-list-*`), `tile-atlas.js`
+  (`drawMuseCtaCell` muted-symbol + the `muse-cta` symbol preload), `globe.js`
+  (`SIZE_BY_KIND['muse-cta']`), `observatory.css` (`.tile-flip-*.is-cta`, `.tile-flip-cta-*`, and just
+  the bespoke `.observatory-invite` section header/intro — rows borrow `.observatory-list-*`),
+  `index.html` (`.observatory-invite` section).
+  *Refines:* **G-F** (the surplus-vertex fill is now repeated muse-symbol CTAs whenever a cause is
+  dormant; blank spacers are only the zero-dormant fallback).
+  *Eyeball-tunable:* the exact copy, the front symbol size/mute opacity, the disc size (1.0 vs
+  campaigns' 0.9), and how many causes are dormant (data-derived — activating a muse's first campaign
+  drops its CTA and frees its discs back to the remaining dormant muses).
+
 ## 2026-06-27 — Comet-branding pass on the campaign side + globe fidelity (Memo + Claude)
 
 Carrying the cocoex website's **Comet Collab toggle** look (off-white, Canela, big uppercase
