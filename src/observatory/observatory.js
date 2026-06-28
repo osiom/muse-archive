@@ -76,14 +76,23 @@ async function boot() {
 // Each campaign is expanded into "leaves" (one tile per photo) so the duplicate circles a
 // campaign occupies show DIFFERENT photos but all open the same record page (selection
 // .expandToLeaves — Memo's "leaves & root"). The list/filters stay campaign-based.
+const MUSE_HEXES = Object.values(MUSE_HEX);
+
+// The globe draws each photo into a tiny circle, so it loads the build-time WebP THUMBNAIL
+// (/assets/images/<slug>/thumb/<name>.webp) rather than the 1–1.6MB original — far less to
+// download (the record pages still use the full-res files). Mirror of thumbs.mjs's path; a
+// missing thumb degrades to a plain disc (loadImage resolves null). Round-absolute, no base —
+// same as how the globe already loads photos.
+const thumbUrl = (p) => (p ? p.replace(/\/([^/]+)\.[^.]+$/, '/thumb/$1.webp') : p);
+
 function buildItems(campaigns) {
-  return expandToLeaves(campaigns).map((c) => ({
+  const items = expandToLeaves(campaigns).map((c) => ({
     kind: 'campaign',
     title: c.title,
     cause: c.cause,
     summary: c.summary,
     hex: c.hex,
-    hero: c.hero || null, // the LEAF's photo (root-absolute /assets/images/<slug>/<file>, D-4)
+    hero: thumbUrl(c.hero) || null, // the LEAF's photo as a small globe thumbnail (full-res stays on record pages)
     url: c.url,
     hasPage: c.hasPage,
     type: c.type,
@@ -91,6 +100,23 @@ function buildItems(campaigns) {
     status: c.status,
     year: c.year,
   }));
+  // Fill the globe with plain muse-colour discs rather than REPEATING photos. The sphere has
+  // CAMPAIGN_CAP vertices but rarely that many distinct campaign photos, so the surplus vertices
+  // become decorative discs (kind:'spacer', hero:null → procedural coloured disc, inert on tap).
+  // Named 'spacer' (not 'filler') to avoid colliding with the build's `filler` campaigns.json
+  // field (a content density-tile) — they're unrelated concepts.
+  // Guarantees no photo is ever shown twice ("don't show the same circle") while keeping all the
+  // real campaigns balanced (expandToLeaves caps each). Colours cycle the seven muses;
+  // arrangeOnGraph keeps same-colour discs off adjacent vertices (campKey falls back to the hex).
+  for (let i = items.length; i < CAMPAIGN_CAP; i++) {
+    items.push({
+      kind: 'spacer',
+      hex: MUSE_HEXES[i % MUSE_HEXES.length],
+      hero: null, url: null, hasPage: false,
+      title: '', cause: null, summary: null, type: null, number: null, status: null, year: null,
+    });
+  }
+  return items;
 }
 
 function maybeInitGlobe(landing, allCampaigns) {
@@ -498,6 +524,8 @@ function initFlip(canvas, globe) {
   });
   canvas.addEventListener('pointerup', (e) => {
     if (moved || Date.now() - t0 >= 400 || !currentFocus) return;
+    if (currentFocus.kind === 'spacer') return;   // decorative muse disc — nothing to open
+
     const rect = globe?.getActiveTileScreen();
     if (!rect) return;
     // Hit the WHOLE disc, not just the symbol. The vertex shader spherises the quad so the

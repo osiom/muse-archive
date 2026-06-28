@@ -43,8 +43,10 @@ status: closed | ongoing | upcoming
 year: 2025
 location:                          # LIST — one entry per place (even a single place is a 1-item list)
   - Volpedo, Alessandria · Italy   #   multi-place event: one line per place (e.g. Berlin / Krefeld / …)
-hero: 00-hero.jpg                  # BARE filename → assets/images/<slug>/00-hero.jpg (cover circle)
+hero: 00-hero.jpg                  # BARE filename → assets/images/<slug>/00-hero.jpg (cover circle + record banner)
+heroFocus: center 59%              # OPTIONAL — record-banner crop focal point (CSS object-position); default "center 30%"
 images: []                         # bare filenames, same folder — SHOWN IN FILENAME ORDER (1, 2 … 10)
+globeExclude: []                   # OPTIONAL — bare filenames kept in the gallery but never shown as a globe circle
 ```
 
 > **Images live in `public/assets/images/<slug>/`** (decision D-4) — one folder per
@@ -53,7 +55,20 @@ images: []                         # bare filenames, same folder — SHOWN IN FI
 > `/assets/images/<slug>/<file>`. `hero` and `images` entries are **bare filenames**, resolved
 > into that folder by the build — the author never writes a path. A `hero` missing from that
 > folder warns (never fails). Drop **web-sized** images here; raw originals stay out of the repo
-> (automated downscaling is the deferred P2.1 `sharp` step).
+> (downscaling web copies of the *originals* is still the manual `sips` pass — the deferred part
+> of P2.1).
+>
+> **Globe thumbnails (auto, `sharp`).** The globe draws each photo into a tiny circle, so the build
+> generates a **512px WebP** next to each one — `assets/images/<slug>/thumb/<name>.webp` — and the
+> globe loads *that* (record pages keep the full-res original). Generated automatically at dev start
+> and on build (`vite-plugin-observatory.mjs` `buildStart` → `scripts/observatory/thumbs.mjs`),
+> **cached**, **gitignored** (regenerated, never committed), and non-fatal (a missing thumb → a plain
+> muse-colour disc). Authors do nothing — just drop the photos. (Decision G-F/P2.1.)
+>
+> **`heroFocus`** (optional) sets the record **banner** crop via CSS `object-position` (default
+> `center 30%`, so heads survive). Find a value live by opening the page with **`#place`** and
+> dragging the banner — it prints the value to paste. **`globeExclude`** lists bare filenames to keep
+> in the gallery but bar from the globe circles (e.g. a text poster that reads poorly as a disc).
 >
 > **Slideshow order = filename order.** `build.mjs` sorts `images[]` by filename, numeric-aware
 > (so `2` precedes `10`) — the order they're *listed* in frontmatter is ignored. To reorder the
@@ -138,8 +153,10 @@ The complete index — *every* campaign, no sampling/filtering at build time.
   "status": "closed", "year": 2025,
   "locations": ["Volpedo, Alessandria · Italy"], // the real list (filter/count later)
   "location": "Volpedo, Alessandria · Italy", //  " · "-joined display string
-  "hero": "/assets/images/stardust001/img-2364.jpg", // root-absolute; null → muse-colour placeholder
+  "hero": "/assets/images/stardust001/00-hero.jpg", // root-absolute; null → muse-colour placeholder
+  "images": ["/assets/images/stardust001/1.jpg"], // root-absolute gallery list (page gallery + globe leaves)
   "summary": "Memo — co-founder of cocoex…",  // first prose paragraph, capped
+  "globeExclude": ["/assets/images/stardust001/1.jpg"], // OMITTED unless set — gallery-only, off the globe
   "hasPage": true,                           // false = tile-only (no nav target)
   "draft": true,                             // OMITTED unless a page-worthy record is a held-back draft
   "filler": true,                            // OMITTED unless a globe-only density tile

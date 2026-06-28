@@ -1,13 +1,13 @@
 // Muse Observatory — selection layer (layer 3). Pure logic, no DOM, no WebGL.
 //
 // Turns the full campaigns.json index into the bounded subset the views consume:
-//   • sample()          — session-stable random landing subset (seeded shuffle).
+//   • sample()          — per-load random landing subset (seeded shuffle).
 //   • filterCampaigns() — the TRUE ANDed matching set (never a re-sample).
 //   • applySparseGuard() — detects too-few-matches; fallback policy still open (A-4).
 //
 // Array-in / array-out only — testable in node:test exactly like build.mjs, with no
-// device or browser. The single impure touch (sessionStorage for the seed) is isolated
-// in makeSeed() so the rest stays pure. Consumed LATER by the globe/grid via Globe
+// device or browser. The single impure touch (a module-cached random seed, fresh each
+// page load) is isolated in makeSeed() so the rest stays pure. Consumed LATER by the globe/grid via Globe
 // .setItems(subset) and renderList(subset) — wiring is a separate milestone, NOT here.
 //
 // Records are CampaignIndex objects (see build.mjs typedef): { slug, type, number,
@@ -29,33 +29,19 @@ export const CAMPAIGN_CAP = 42;
  */
 export const GLOBE_LEAVES_PER_CAMPAIGN = 8;
 
-const SEED_KEY = 'mo.seed';
+let cachedSeed = null;
 
 /**
- * Derive the per-session seed (ONCE per session). Reads/writes sessionStorage so the
- * landing sample stays stable across re-renders within a visit and is fresh next visit.
- * Guarded: if sessionStorage is unavailable (e.g. Node, private mode), returns a fresh
- * random integer instead of throwing — keeping this module testable. This is the only
- * impure function in the module.
+ * Derive the per-PAGE-LOAD seed (ONCE per load). Cached in a module variable so the landing
+ * sample stays stable across re-renders within a single load (e.g. "clear filter" returns to the
+ * same landing), but is FRESH on every refresh — so each reload lands on a different random globe.
+ * (Back-forward cache restores the module state, so hitting Back keeps the same globe; only an
+ * actual reload re-rolls it.) This is the only impure function in the module.
  * @returns {number} A 32-bit-ish positive integer seed.
  */
 export function makeSeed() {
-  const fresh = () => Math.floor(Math.random() * 0xffffffff) >>> 0;
-  try {
-    const store = typeof sessionStorage !== 'undefined' ? sessionStorage : null;
-    if (!store) return fresh();
-    const existing = store.getItem(SEED_KEY);
-    if (existing != null && existing !== '') {
-      const n = Number(existing);
-      if (Number.isFinite(n)) return n >>> 0;
-    }
-    const seed = fresh();
-    store.setItem(SEED_KEY, String(seed));
-    return seed;
-  } catch {
-    // sessionStorage can throw (disabled cookies, sandboxed iframe) — degrade to random.
-    return fresh();
-  }
+  if (cachedSeed == null) cachedSeed = Math.floor(Math.random() * 0xffffffff) >>> 0;
+  return cachedSeed;
 }
 
 /**
@@ -126,8 +112,11 @@ export function expandToLeaves(campaigns, cap = CAMPAIGN_CAP, perCampaignCap = G
   const max = Math.max(0, Math.floor(cap));
   const perC = Math.max(1, Math.floor(perCampaignCap)); // always at least the hero/placeholder leaf
   const perCampaign = list.map((c) => {
+    // globeExclude = photos kept in the record-page gallery but barred from the globe (e.g.
+    // text-heavy posters that read poorly cropped to a disc). Rooted paths, matched directly.
+    const exclude = new Set(Array.isArray(c.globeExclude) ? c.globeExclude : []);
     const photos = [c.hero, ...(Array.isArray(c.images) ? c.images : [])]
-      .filter((p) => p != null && p !== '');
+      .filter((p) => p != null && p !== '' && !exclude.has(p));
     const uniq = [...new Set(photos)];
     return { c, photos: uniq.length ? uniq : [null] }; // [null] = one placeholder leaf
   });

@@ -14,6 +14,8 @@ body.observatory-record {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   padding: clamp(24px, 6vw, 96px) clamp(20px, 6vw, 80px) clamp(64px, 12vh, 160px);
+  overflow-x: hidden;   /* the full-bleed hero's calc(50% - 50vw) includes the scrollbar width;
+                           clip it here so classic (non-overlay) scrollbars don't side-scroll */
 }
 
 /* draft banner (dev preview only — drafts never reach a production build) */
@@ -30,56 +32,213 @@ body.observatory-record {
 }
 .record-draft-banner code { font-family: ui-monospace, monospace; }
 
+/* back control — the page's ONE beam moment: a pill carrying the running muse-spectrum rim
+   (.beam-glow, ported below from the cocoex site). Kept special by appearing nowhere else. */
 .record-back {
-  display: inline-block;
-  margin-bottom: clamp(24px, 5vw, 48px);
-  color: #555;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: clamp(28px, 5vw, 52px);
+  padding: 10px 22px;
+  border: 1px solid #1a1a1a;
+  border-radius: 50px;
+  color: #1a1a1a;
   text-decoration: none;
-  font-size: 15px;
-  letter-spacing: 0.02em;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: transform 0.3s var(--ease-out);
 }
-.record-back:hover { color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+  .record-back:hover { transform: translateX(4px); }
+}
+.record-back:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 4px; }
+
+/* ── beam machinery (ported from cocoex-website base.css + comet.css) ──────────────────────
+   A muse-spectrum wedge of a conic gradient races the rim (::before, masked to the border
+   band) over a soft blurred bloom (::after); the angle tweens via the Houdini @property. */
+@property --beam-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes beam-spin { to { --beam-angle: 360deg; } }
+.beam-glow { position: relative; isolation: isolate; }
+.beam-glow::before,
+.beam-glow::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from var(--beam-angle),
+    rgba(213, 77, 46, 0) 0deg,
+    #D54D2E 40deg, #D48348 60deg, #F8D86A 80deg,
+    #8CB07F 100deg, #5783A6 120deg, #5E47A1 140deg,
+    rgba(127, 73, 162, 0) 170deg,
+    transparent 360deg);
+  animation: beam-spin 5s linear infinite;
+}
+/* crisp ring: cut out the interior so only the border band shows (text reads through). */
+.beam-glow::before {
+  padding: 2px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  z-index: 1;
+}
+/* soft bloom behind, masked to the same ring band (Safari-safe rounded glow). */
+.beam-glow::after {
+  padding: 5px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  filter: blur(7px);
+  opacity: 0.55;
+  z-index: -1;
+}
 
 .record {
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
-/* header — accent rail above the eyebrow */
-.record-header { margin-bottom: clamp(32px, 6vw, 56px); }
-.record-header::before {
+/* eyebrow band — toggle-style label line across the top: STARDUST 001 · BIO-DIVERSITY · 2025.
+   Ink (not muse colour) so it always clears AA on the off-white, whatever the muse hue. */
+.record-eyebrow {
+  margin: 0 0 clamp(20px, 3vw, 32px);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: clamp(12px, 1.2vw, 14px);
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* the paired data row: the factual dashboard and the numbered process side-by-side.
+   DOM order across the page stays title → story → facts → steps (single-column reading
+   order); the columns are pure layout, so screen-reader / keyboard / no-CSS users get a
+   clean narrative (a11y rule). Stacks to one column (facts then steps) below 880px. */
+.record-data-grid {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+  max-width: 860px;                 /* centred, narrower block — keeps the page from feeling left-heavy */
+  margin: 0 auto clamp(40px, 7vw, 72px);
+}
+@media (min-width: 880px) {
+  .record-data-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+/* Mobile: the short process reads ABOVE the dense facts card (lighter content first). The blocks
+   are non-interactive (a <dl> + an <ol> of text), so this visual reorder doesn't affect keyboard
+   tab order; the desktop two-column order (facts | process) is unchanged. */
+@media (max-width: 879px) {
+  .record-steps-col { order: -1; text-align: center; }
+  .record-steps { align-items: center; }                 /* centre each step in the column */
+  .record-step { grid-template-columns: auto auto; justify-content: center; }
+  .record-step-num { min-width: 0; }                      /* tight number→title pair when centred */
+}
+
+/* the header is centred on the campaign page (echoing the list page's centred title), so the
+   muse crest, eyebrow, title, rule and lede sit on the page's centre line — no left-heavy void. */
+.record-header { margin: 0; text-align: center; }
+/* muse crest — the white muse silhouette tinted to its hue (deepened so the pale muses stay
+   perceptible on off-white), centred above the eyebrow. */
+.record-muse {
+  display: block;
+  width: clamp(48px, 7vw, 76px);
+  height: clamp(48px, 7vw, 76px);
+  margin: 0 auto clamp(18px, 3vw, 26px);
+  background: color-mix(in srgb, var(--accent) 85%, #1a1a1a);
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+          mask: var(--glyph) center / contain no-repeat;
+}
+/* big uppercase display title — the toggle's idiom, kept INK (muse hue would fail AA for the
+   pale muses even at display sizes); the muse colour stays a quiet accent (rule below + facts). */
+.record-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(40px, 8vw, 88px);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+/* quiet muse accent — a full-width solid rule under the title, reading as the header divider
+   (decorative; not the rainbow beam, which lives once on the back pill). */
+.record-title::after {
   content: "";
   display: block;
-  width: 56px;
-  height: 4px;
-  margin-bottom: clamp(20px, 3vw, 28px);
+  width: 100%;
+  height: 2px;
+  margin-top: clamp(18px, 2.5vw, 26px);
   background: var(--accent);
   border-radius: 2px;
 }
-.record-eyebrow {
-  margin: 0 0 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.record-header h1 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(32px, 6vw, 64px);
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-}
 .record-meta {
-  margin: 16px 0 0;
+  margin: clamp(16px, 2.5vw, 22px) 0 0;
   color: #666;
   font-size: clamp(15px, 1.6vw, 18px);
 }
+/* the short story / standfirst — a full-width lede between the header and the data row, held
+   to a readable measure and given real space so it never collides with the facts card. */
+.record-story {
+  max-width: 660px;
+  margin: clamp(24px, 4vw, 36px) auto clamp(40px, 6vw, 60px);
+  font-size: clamp(18px, 2vw, 23px);
+  line-height: 1.45;
+  text-align: center;
+  color: #1a1a1a;
+  text-wrap: pretty;
+}
 
-/* factual block — derived from frontmatter, present fields only */
+/* numbered steps column — labels only, in the toggle's typographic rhythm. Its top aligns with
+   the facts card's top edge (align-items:start on the grid), so the two blocks read as a row. */
+.record-steps-col { min-width: 0; }
+.record-steps-label {
+  margin: 0 0 clamp(8px, 1.2vw, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+.record-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.6vh, 1.75rem);
+}
+.record-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(0.85rem, 2vw, 1.35rem);
+  align-items: baseline;
+}
+.record-step-num {
+  font-size: clamp(20px, 2.5vw, 30px);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #1a1a1a;
+  min-width: clamp(38px, 4.5vw, 56px);
+}
+.record-step-title {
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 700;
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: #1a1a1a;
+}
+/* factual block — derived from frontmatter, present fields only. Lives in the data grid now,
+   so the grid gap (not a bottom margin) owns its spacing. */
 .record-facts {
-  margin: 0 0 clamp(36px, 6vw, 56px);
+  margin: 0;
+  min-width: 0;
   padding: clamp(20px, 3vw, 28px) clamp(20px, 3vw, 32px);
   border: 1px solid #e2e2dc;
   border-left: 3px solid var(--accent);
@@ -98,8 +257,9 @@ body.observatory-record {
 }
 .record-facts dd { margin: 0; font-size: clamp(15px, 1.7vw, 18px); }
 
-/* article body */
-.record-body { font-size: clamp(17px, 1.9vw, 20px); }
+/* article body — held to a readable measure and centred on the page (text stays left-aligned;
+   centring long-form paragraphs would hurt readability). */
+.record-body { max-width: 720px; margin: 0 auto; font-size: clamp(17px, 1.9vw, 20px); }
 .record-body h2 {
   margin: clamp(40px, 6vw, 56px) 0 16px;
   font-weight: 700;
@@ -117,19 +277,30 @@ body.observatory-record {
   margin: 12px 0;
 }
 
-/* lead cover image (frontmatter `hero`) — cropped to a standard hero BANNER so a big/tall source
-   photo can't dominate the page. Responsive: tall 4:5 on phones (immersive), wide 16:9 ≥600px. */
-.record-hero { margin: 0 0 clamp(32px, 6vw, 56px); }
-.record-hero img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 6px;
+/* lead cover image (frontmatter `hero`) — a deliberate FULL-BLEED band: it escapes the centred
+   .record (max-width 1100) and the body padding via the standard container-break, so its edge-to-
+   edge width reads as intentional rather than displaced. A clamped band height keeps it cinematic
+   (not 1080px tall on a wide screen). NOTE: 50vw includes the scrollbar; the page root
+   (body.observatory-record) sets overflow-x:hidden so classic scrollbars don't side-scroll. */
+.record-hero {
+  position: relative;
+  overflow: hidden;                  /* clip the taller, drifting image to the band */
+  height: clamp(280px, 50vh, 560px);
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-bottom: clamp(40px, 7vw, 72px);
 }
-@media (min-width: 600px) {
-  .record-hero img { aspect-ratio: 16 / 9; }
+/* the image is taller than the frame (8% overflow top + bottom) so the parallax script can drift
+   it ±6% without exposing an edge; --hero-focus (frontmatter heroFocus) sets the cover-crop. */
+.record-hero img {
+  position: absolute;
+  top: -8%;
+  left: 0;
+  width: 100%;
+  height: 116%;
+  object-fit: cover;
+  object-position: var(--hero-focus, center 30%);
+  will-change: transform;
 }
 
 /* gallery (frontmatter `images`) — a swipeable, AUTO-LOOPING slideshow. Each photo shows WHOLE
@@ -281,4 +452,8 @@ mark.confirm {
 
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
+  .beam-glow::before, .beam-glow::after { animation: none; }
+  .record-back { transition: none; }
+  /* pin the hero static at its focal point — no parallax drift (the JS bails too). */
+  .record-hero img { position: static; top: 0; height: 100%; transform: none; }
 }

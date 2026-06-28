@@ -72,27 +72,59 @@ function renderFacts(meta) {
   return html ? `<aside class="record-facts"><dl>${html}</dl></aside>` : '';
 }
 
+// The campaign as numbered steps, in the cocoex Comet-Collab toggle's idiom (labels only).
+// Stardust: Choose → Create → Raise → Impact. Horizon inserts a Future Lab step (its one
+// difference) as a plain numbered item — no badge.
+function renderSteps(type) {
+  const steps = type === 'horizon'
+    ? ['Choose', 'Future Lab', 'Create', 'Raise', 'Impact']
+    : ['Choose', 'Create', 'Raise', 'Impact'];
+  const items = steps.map((label, i) => {
+    const num = String(i + 1).padStart(2, '0');
+    return `<li class="record-step"><span class="record-step-num" aria-hidden="true">${num}</span><span class="record-step-title">${esc(label)}</span></li>`;
+  }).join('\n');
+  const label = type === 'horizon' ? 'How a Horizon campaign works' : 'How a Stardust campaign works';
+  return `<section class="record-steps-col" aria-label="${label}">
+<p class="record-steps-label">The process</p>
+<ol class="record-steps">
+${items}
+</ol>
+</section>`;
+}
+
 /**
  * @param {{ meta: object, joined: {cause,hex}|null, bodyHtml: string, draft: boolean,
- *          base?: string, hero?: string|null, images?: string[] }} args
+ *          base?: string, hero?: string|null, images?: string[], lede?: string|null }} args
  *        base = Vite's base path ('/' or '/museobservatory/'); always trailing-slashed.
  *        hero/images = root-absolute /assets/images/<slug>/<file> paths (re-rooted onto base here).
+ *        lede = short plain-text story for the left column (the index `summary`).
  * @returns {string} full <!doctype html> document
  */
-export function renderRecordPage({ meta, joined, bodyHtml, draft, base = '/', hero = null, images = [] }) {
+export function renderRecordPage({ meta, joined, bodyHtml, draft, base = '/', hero = null, images = [], lede = null }) {
   const accent = joined?.hex || 'var(--color-black)';
   const typeLabel = meta.type === 'horizon' ? 'Horizon' : 'Stardust';
   const numLabel = blank(meta.number) ? '' : ` ${String(meta.number).padStart(3, '0')}`;
   const cause = joined?.cause || null;
-  const eyebrow = present(`${typeLabel}${numLabel}`, cause).join(' · ');
-  const meta2 = present(meta.year, meta.location).join(' · ');
+  // Eyebrow band, toggle-style: STARDUST 001 · BIO-DIVERSITY · 2025 (type label · cause · year).
+  const eyebrow = present(`${typeLabel}${numLabel}`, cause, meta.year).join(' · ');
+  const meta2 = present(meta.location).join(' · ');   // location sits under the title
   const desc = present(cause, `${typeLabel}${numLabel}`, meta.location).join(' · ');
   const title = meta.title || meta.slug;
 
   // root-absolute (/assets/…) → base-rooted (subpath-safe on GitHub Pages), same as the favicon.
   const asset = (p) => `${base}${String(p).replace(/^\//, '')}`;
+  // muse crest atop the header — the white muse silhouette tinted to the muse hue via a CSS mask
+  // (same device as the list glyph). Decorative (the cause is named in the eyebrow); omitted when
+  // a campaign has no muse assigned.
+  const museSlug = blank(meta.muse) ? null : String(meta.muse).toLowerCase();
+  const museGlyph = museSlug
+    ? `<span class="record-muse" style="--glyph:url('${esc(asset('/assets/images/muse/' + museSlug + '-white.png'))}')" aria-hidden="true"></span>`
+    : '';
+  // heroFocus = the cover-crop focal point (CSS object-position), so a campaign can keep heads/
+  // subjects in frame. Defaults high ('center 30%') since faces usually sit in the upper third.
+  const heroFocus = blank(meta.heroFocus) ? 'center 30%' : String(meta.heroFocus);
   const heroFig = hero
-    ? `<figure class="record-hero"><img src="${esc(asset(hero))}" alt="${esc(title)}" loading="lazy"></figure>`
+    ? `<figure class="record-hero" style="--hero-focus:${esc(heroFocus)}"><img src="${esc(asset(hero))}" alt="${esc(title)}" loading="lazy"></figure>`
     : '';
   const galleryImgs = (Array.isArray(images) ? images : []).filter(Boolean);
   const multi = galleryImgs.length > 1;
@@ -194,6 +226,58 @@ ${multi ? '<div class="gallery-dots" role="tablist" aria-label="Choose image"></
 </script>`
     : '';
 
+  // Hero parallax: the image sits taller than its clipped frame and drifts SLOWER than the page as
+  // the band crosses the viewport, "buffering" the scroll and revealing more of the photo (heads
+  // included). rAF-throttled, passive; skipped entirely under prefers-reduced-motion (CSS then
+  // pins the image static at its focal point).
+  const heroScript = hero
+    ? `<script>
+(function () {
+  var frame = document.querySelector('.record-hero');
+  if (!frame) return;
+  var img = frame.querySelector('img');
+  if (!img) return;
+
+  // ── placement mode: open the page with #place to DRAG the banner crop and read off the value to
+  //    paste into the campaign's frontmatter (heroFocus). Dev/authoring aid; inert without the hash.
+  if (location.hash === '#place') {
+    img.style.transform = 'none'; img.style.top = '0'; img.style.height = '100%';
+    img.style.cursor = 'grab'; img.setAttribute('draggable', 'false');
+    var pct = 50, cur = getComputedStyle(frame).getPropertyValue('--hero-focus'), m = cur.match(/(\\d+(?:\\.\\d+)?)%/);
+    if (m) pct = parseFloat(m[1]); else if (/bottom/.test(cur)) pct = 100; else if (/top/.test(cur)) pct = 0;
+    var tag = document.createElement('div');
+    tag.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:9999;background:#111;color:#fff;font:13px/1.4 ui-monospace,monospace;padding:9px 13px;border-radius:8px;box-shadow:0 6px 22px rgba(0,0,0,.45)';
+    document.body.appendChild(tag);
+    function apply() { img.style.objectPosition = 'center ' + Math.round(pct) + '%'; tag.textContent = 'heroFocus: center ' + Math.round(pct) + '%   — drag the image, then paste this into the .md'; }
+    apply();
+    var drag = false, y0 = 0, p0 = 0;
+    img.addEventListener('pointerdown', function (e) { drag = true; y0 = e.clientY; p0 = pct; img.style.cursor = 'grabbing'; img.setPointerCapture(e.pointerId); e.preventDefault(); });
+    img.addEventListener('pointermove', function (e) { if (!drag) return; pct = Math.max(0, Math.min(100, p0 + (y0 - e.clientY) / frame.offsetHeight * 100)); apply(); });
+    img.addEventListener('pointerup', function () { drag = false; img.style.cursor = 'grab'; });
+    return;   // no parallax while placing
+  }
+
+  // ── parallax (default): the image drifts SLOWER than the page as the band crosses the viewport,
+  //    "buffering" the scroll and revealing more of the photo. Skipped under reduced-motion.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var amp = 0, ticking = false;
+  function measure() { amp = frame.offsetHeight * 0.06; }   /* drift ≤ the 8% overflow per side */
+  function update() {
+    ticking = false;
+    var r = frame.getBoundingClientRect();
+    var span = window.innerHeight + r.height;
+    var p = (window.innerHeight - r.top) / span;            /* 0 entering → 1 leaving */
+    p = p < 0 ? 0 : p > 1 ? 1 : p;
+    img.style.transform = 'translate3d(0,' + (amp * (0.5 - p) * 2).toFixed(1) + 'px,0)';
+  }
+  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+  measure(); update();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', function () { measure(); update(); }, { passive: true });
+})();
+</script>`
+    : '';
+
   const draftBanner = draft
     ? `<p class="record-draft-banner">Draft — contains unverified <code>[confirm]</code> notes; not published.</p>`
     : '';
@@ -213,15 +297,20 @@ ${multi ? '<div class="gallery-dots" role="tablist" aria-label="Choose image"></
 </head>
 <body class="observatory-record" style="--accent:${accent}">
 ${draftBanner}
-<a class="record-back" href="${base}">← Observatory</a>
+<a class="record-back beam-glow" href="${base}">← Observatory</a>
 <article class="record">
 <header class="record-header">
+${museGlyph}
 <p class="record-eyebrow">${esc(eyebrow)}</p>
-<h1>${esc(title)}</h1>
+<h1 class="record-title">${esc(title)}</h1>
 ${meta2 ? `<p class="record-meta">${esc(meta2)}</p>` : ''}
 </header>
-${heroFig}
+${lede ? `<p class="record-story">${esc(lede)}</p>` : ''}
+<div class="record-data-grid">
 ${renderFacts(meta)}
+${renderSteps(meta.type)}
+</div>
+${heroFig}
 <div class="record-body">
 ${bodyHtml}
 </div>
@@ -229,6 +318,7 @@ ${gallery}
 </article>
 ${footer}
 ${galleryScript}
+${heroScript}
 </body>
 </html>
 `;

@@ -11,10 +11,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateObservatory } from './scripts/observatory/build.mjs';
+import { generateThumbs } from './scripts/observatory/thumbs.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CONTENT_DIR = path.join(HERE, 'content/campaigns');
 const RECORD_CSS = path.join(HERE, 'src/observatory/record.css');
+const PUBLIC_DIR = path.join(HERE, 'public');
 
 export default function observatory() {
   let outDir = path.join(HERE, 'dist');
@@ -23,6 +25,19 @@ export default function observatory() {
 
   return {
     name: 'observatory',
+
+    // Generate the small globe-tile thumbnails ONCE up front: in dev at server start, in build
+    // before Vite copies public/ → dist/ (buildStart is the first hook). Non-fatal — the globe
+    // degrades to plain discs if a thumb is missing.
+    async buildStart() {
+      try {
+        const out = await generateObservatory({ includeDrafts: true, base });
+        const made = await generateThumbs(JSON.parse(out.campaignsJson), PUBLIC_DIR);
+        if (made) console.log(`[observatory] generated ${made} globe thumbnail(s)`);
+      } catch (err) {
+        console.warn('[observatory] thumbnail generation skipped:', err.message);
+      }
+    },
 
     configResolved(config) {
       outDir = path.resolve(config.root, config.build.outDir);

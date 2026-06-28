@@ -50,4 +50,5 @@ Layers 1–3 are pure data/logic (no WebGL, testable, device-independent). Build
 ## Tech
 
 Vanilla JS (no frameworks, by rule) · WebGL2 + `gl-matrix` (globe) · Vite (build + dev) ·
-`gray-matter` + `marked` (build-time markdown only — never shipped to the client).
+`gray-matter` + `marked` + `sharp` (build-time only — markdown parse + globe-tile thumbnails;
+never shipped to the client).
