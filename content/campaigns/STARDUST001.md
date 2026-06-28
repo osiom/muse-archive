@@ -20,6 +20,8 @@ images:                    # full gallery (page) + extra globe leaves — order 
   - 11.jpg
   - 12.jpg
   - 13.jpg
+globeExclude:              # kept in the gallery, but never shown as a globe circle (text poster)
+  - 1.jpg
 
 # Stardust factual block
 artist: Memose Vithana (Memo)

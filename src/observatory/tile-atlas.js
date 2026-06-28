@@ -177,6 +177,7 @@ export async function buildAtlas(items) {
   items.forEach((item, i) => {
     const ox = (i % atlasSize) * CELL;
     const oy = Math.floor(i / atlasSize) * CELL;
+    if (item.kind === 'spacer') return;   // decorative disc only — leave the cell transparent so just the procedural muse-colour disc shows
     if (item.kind === 'muse') drawMuseCell(ctx, ox, oy, imgs[i]);
     else drawCampaignCell(ctx, ox, oy, item, imgs[i]);
   });

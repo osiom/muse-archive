@@ -183,6 +183,7 @@ function validateCampaign({ filename, meta, id, pageWorthy, museSlug }, warn) {
  * @property {string|null} hero    Root-absolute /assets/images/<slug>/<file>; null → muse-colour placeholder.
  * @property {string[]}  images    Gallery photos (root-absolute); [] if none. Page gallery + globe leaves.
  * @property {string|null} summary First prose paragraph, capped; null if no prose.
+ * @property {(string[]|undefined)} globeExclude Rooted photo paths kept in the gallery but barred from the globe circles; omitted when none (D-6).
  * @property {boolean}   hasPage   true → a record page exists at `url`; false → tile-only.
  * @property {(true|undefined)} draft    true only when a page-worthy record is a held-back draft.
  * @property {(true|undefined)} filler   true → globe-only density tile, skipped in the accessible list.
@@ -248,6 +249,12 @@ export function parseCampaign(raw, filename, museMap, warn) {
           .map((f) => `/assets/images/${slug}/${f}`)
       : [],
     summary: summarize(body),
+    // globeExclude: photos kept in the gallery but barred from the globe circles (e.g. text-heavy
+    // posters that read poorly cropped to a disc). Rooted like images so the selection layer can
+    // match them directly; undefined when empty (JSON.stringify drops it).
+    globeExclude: Array.isArray(meta.globeExclude) && meta.globeExclude.some((f) => !isBlank(f))
+      ? meta.globeExclude.filter((f) => !isBlank(f)).map((f) => `/assets/images/${slug}/${f}`)
+      : undefined,
     hasPage,
     draft: pageWorthy && draft ? true : undefined,
     // filler: a globe-only density tile (the homepage gave extra footage to "fill the globe").
@@ -350,7 +357,11 @@ export async function generateObservatory({ includeDrafts = false, base = '/' } 
     // blockquote, …). THEN inject the [confirm] highlight with the note text ESCAPED.
     const bodyHtml = DOMPurify.sanitize(String(marked.parse(p.body)))
       .replace(CONFIRM_RE, (_, t) => `<mark class="confirm">[confirm:${esc(t)}]</mark>`);
-    pages.push({ slug: p.slug, html: renderRecordPage({ meta: p.meta, joined: p.joined, bodyHtml, draft: p.draft, base, hero: p.index.hero, images: p.index.images }) });
+    // type/number are derived from the FILENAME (never frontmatter — see identityFromFilename),
+    // so fold the authoritative index values into meta; the template reads meta.type/.number for
+    // the Stardust/Horizon label, the type-specific facts block, and Horizon's Future Lab step.
+    const meta = { ...p.meta, type: p.index.type, number: p.index.number };
+    pages.push({ slug: p.slug, html: renderRecordPage({ meta, joined: p.joined, bodyHtml, draft: p.draft, base, hero: p.index.hero, images: p.index.images, lede: p.index.summary }) });
   }
 
   const summary = {
