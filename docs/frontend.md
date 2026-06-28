@@ -42,10 +42,29 @@ adds 30 deduped edge-midpoints (`globe-geometry.js:52`, `#getMidPoint` cache at 
 collide on the same vertex or never render. This is by design (decision G-A) — the globe
 is a *bounded view*, not navigation.
 
-**The budget is the full 42 campaign slots.** Muses left the globe (decision S-1, revised):
-`buildItems()` now emits **campaign tiles only** — the old 7-muse-anchor prepend was
-removed — so all 42 vertices hold campaigns and `CAMPAIGN_CAP = 42`. The globe is purely
-Stardust/Horizon; the muse facet moved into the filter panel.
+**The budget is the full 42 campaign slots.** Muses left the globe as *navigation* (decision S-1,
+revised): `buildItems()` emits **campaign leaves** (V-6) — the old 7-muse-anchor prepend was
+removed — so the vertices hold campaigns and `CAMPAIGN_CAP = 42`. The muse facet moved into the
+filter panel. When there are fewer distinct photos than vertices (usually), `buildItems` fills the
+surplus — with the **dormant-cause CTA discs** (`kind:'muse-cta'`, decision G-H) whenever a cause is
+dormant, or decorative **muse-colour discs** (`kind:'spacer'`, inert) as the zero-dormant fallback —
+rather than repeating a photo, so **no circle is ever shown twice** (decision G-F). These spacer discs
+are *not* the muses returning to navigation; the kind is named `spacer` (not `filler`) to avoid
+confusion with the build's unrelated `filler` index field.
+
+**Dormant-cause CTA discs (G-H).** The causes with no campaign yet (`MUSES` whose slug is in no
+campaign's `muse`) **repeat across all the surplus vertices** (like a campaign's "leaves"), so every
+non-photo disc is a tappable invitation and none is blank. Each disc shows just the real white **muse
+symbol** (mirroring the cocoex muse-orbit disc, ~78% engraved) at **0.5 opacity** so it reads
+inactive/muted — no cause word. The flip back puts the **cause on the eyebrow arch**, the **muse name**
+above a "has no campaign yet" line, then the myth hook, a cocoex-voice body, and a `mailto:` **"Start"**
+button (no record page exists to "Explore"). A per-muse `slug` (`cta-<muse>`) lets `arrangeOnGraph` keep
+a muse's own repeats off adjacent vertices. The list view carries the same invitation as a distinct
+**"Muses without a campaign yet"** sub-section whose rows **reuse the archive's `.observatory-list-*`
+markup** (muse-glyph logo + eyebrow/name/meta + a "Start →" arrow, `mailto:` href) for
+keyboard/screen-reader parity — a separate section, never injected into the campaign list (A-4 honesty).
+Activating a muse's first campaign automatically drops its CTA and frees its discs to the remaining
+dormant muses (the set is data-derived from the full archive).
 
 **`setItems()` is a genuine, race-guarded seam** (`globe.js`): it swaps the item
 array, recomputes per-instance colour/scale, and rebuilds the atlas, with a guard against
@@ -58,7 +77,9 @@ The render cost is fixed (one `drawElementsInstanced`, 42 instances). The thing 
 grows is the **tile atlas**: `tile-atlas.js` builds a `⌈√N⌉ × ⌈√N⌉` grid of 512 px cells.
 The selection layer now caps the globe's input at ≤ 42 (`CAMPAIGN_CAP`), so N is bounded
 and the atlas can't outgrow common GPU `MAX_TEXTURE_SIZE` limits. **The old "feed it the
-whole list" risk is closed** — the globe only ever sees a bounded subset.
+whole list" risk is closed** — the globe only ever sees a bounded subset. Each cell's photo is
+the build-generated **512px WebP thumbnail** (`<slug>/thumb/<name>.webp`, decision P2.1/G-F), not
+the full-res original, so the atlas loads in ~1.5 MB instead of ~40 MB; record pages keep full-res.
 
 ## The selection layer (layer 3) — built + tested
 
@@ -68,8 +89,9 @@ analogue of `build.test.mjs`). Three exports:
 
 - `sample(campaigns, n = CAMPAIGN_CAP, seed)` — seeded Fisher–Yates shuffle (mulberry32);
   same `(campaigns, seed)` → same subset/order. Non-mutating. The seed comes from
-  `makeSeed()` (sessionStorage `mo.seed`, guarded so it degrades to a fresh random in
-  Node/private mode — the only impure function).
+  `makeSeed()` — a **module-cached** random int, **fresh each page load** but stable within a
+  load (so "clear filter" returns the same landing; back-forward cache keeps the globe on Back).
+  Every refresh re-rolls it → a different landing (decision G-G, amends G-B).
 - `filterCampaigns(campaigns, { muse, type, geo, status })` — ANDed facets, returns the
   **true** match (uncapped; caller caps). muse/type/status are exact case-insensitive;
   geo is a case-insensitive **regex** over all geo fields (`geoFields()` collects
@@ -120,11 +142,13 @@ the experience and the rail is naturally absent (`maybeInitGlobe`).
    per group with toggle-off.
 3. **Zoom is gesture-only** — pinch + scroll-wheel drive `globe.setScale` (`initGlobeZoom`);
    the draggable zoom slider was retired (it duplicated the gestures and cluttered the rail).
-4. **Full-page navigation tears state.** Record pages are separate static HTML (cropped
-   responsive hero, swipeable photo slideshow, cocoex footer — V-7; a small inlined script
-   drives the slideshow); clicking "Explore" is a real navigation, and returning re-boots the
-   page (fresh sample, globe reset, list re-render). Acceptable for now (no SPA router by
-   design), but worth noting.
+4. **Full-page navigation tears state.** Record pages are separate static HTML — a comet-style
+   **two-column editorial** (header: muse crest · eyebrow band · big uppercase title · muse rule;
+   then a centred lede; then facts beside numbered process steps), a **full-bleed hero band** with
+   per-campaign `heroFocus` crop + scroll parallax, the swipeable photo slideshow, and the cocoex
+   footer (V-9/V-10b; small inlined scripts drive the slideshow + parallax). Clicking "Explore" is a
+   real navigation, and returning re-boots the page (**fresh** random sample now — G-G, globe reset,
+   list re-render). Acceptable for now (no SPA router by design), but worth noting.
 
 **What is already good:** interaction itself is smooth — the arcball control
 (`globe-controls.js`) has quaternion drag + inertia + snap-to-tile, with touch weighted heavier

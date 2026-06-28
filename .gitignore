@@ -2,3 +2,6 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# generated globe-tile thumbnails (regenerated at dev start / build by vite-plugin-observatory)
+public/assets/images/*/thumb/

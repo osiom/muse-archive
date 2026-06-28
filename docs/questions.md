@@ -16,6 +16,11 @@ see the 2026-06-23 section in [decisions.md](decisions.md). What's still open:
 - **Q · The `filler` tile concept.** `build.mjs` still has a `filler` notion ("globe-only
   density tile, skipped in the accessible list") — a primitive precursor to layer-3
   sampling. With sampling now in place, decide whether the selection layer subsumes it.
+  *Naming note:* this content `filler` (a campaigns.json field) is **distinct** from the
+  client-side `kind:'spacer'` muse-colour discs that pad the globe to 42 vertices (decision G-F).
+  The client kind was renamed `filler` → `spacer` (2026-06-27) precisely to remove that collision.
+  Since G-H, `spacer` discs only appear as the **zero-dormant fallback** — the surplus vertices are
+  filled with repeated dormant-muse CTA discs whenever any cause is dormant (today they always are).
 
 ## Data schema
 
@@ -30,9 +35,11 @@ see the 2026-06-23 section in [decisions.md](decisions.md). What's still open:
 
 ## Known follow-ups (not blocking)
 
-- **Q · Automate image downscaling (`sharp`).** Today it's a manual `sips` pass (≤2400px JPG q85,
-  HEIC/PNG → JPG; see D-4) — authors could still ship full-res by hand. A build/prepare step with
-  `sharp` (staged devDep) would enforce it. Nice-to-have once the foundation is locked.
+- **Q · Automate image downscaling (`sharp`) — for the *web copies*.** *Partly resolved (G-F/P2.1):*
+  `sharp` is now a build-time devDep and auto-generates the **512px globe-tile thumbnails**
+  (`thumbs.mjs`). What's *still* manual is downscaling the full-res footage **originals** into the
+  ≤2400px web copies dropped in `public/assets/images/<slug>/` (still the `sips` pass; authors could
+  ship full-res by hand). A `sharp` prepare-step could enforce that too. Nice-to-have.
 
 - **Q · `createProgram` hardening.** `globe.js:32` skips the attach on a failed shader
   compile, then relies on `linkProgram` to fail — returns `null` correctly but double-logs.

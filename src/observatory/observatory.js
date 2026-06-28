@@ -15,6 +15,7 @@ import { Globe } from './globe.js';
 import { createStarfield } from '../webgl/starfield.js';
 import { createIntroStarfield } from '../webgl/intro-starfield.js';
 import { CAMPAIGN_CAP, makeSeed, sample, filterCampaigns, applySparseGuard, expandToLeaves } from './selection.js';
+import { MUSES } from '../data.js';
 
 // BASE_URL is '/' in dev and '/museobservatory/' on the GitHub Pages subpath build (always
 // trailing-slashed). campaigns.json bakes root-absolute paths (/campaigns.json, /<slug>/,
@@ -31,6 +32,68 @@ const MUSE_HEX = {
   lunes: '#5783A6', ares: '#D54D2E', rabu: '#8CB07F', thunor: '#F8D86A',
   shukra: '#7F49A2', dosei: '#5E47A1', solis: '#D48348',
 };
+
+// ── dormant-muse CTA discs (decision G-H) ───────────────────────────────────────────────
+// cocoex has 7 muses = 7 causes, but only some are "activated" (have a campaign in the archive).
+// The dormant causes used to be dead decoration (spacer discs). Instead, each gets ONE interactive
+// CTA disc on the globe: flipping it reveals a poetic invitation + a mailto: button to start a
+// campaign. This makes the GAP visible ("these causes have no champion yet") and invites
+// participation — genuine campaigning, not filler. Layer-4 only; the list-view invite block
+// (renderInvite) is the accessible peer. Scope is the dormant muses only — scarcity keeps each
+// invitation special; remaining vertices stay decorative spacers.
+
+// The cocoex contact address the CTA mailto: opens (Proton, honours B-1 — no backend, no third
+// party). Memo-provided 2026-06-28 — see docs/decisions.md G-H.
+const CONTACT_EMAIL = 'coco3x@proton.me';
+
+// Per-muse copy (locked with Memo — there-are-so-many-mossy-deer.md). `hook` is the per-cause myth
+// line, drawn from the muse voice in data.js; `body` + `close` + the button label are shared across
+// all four (one identical invitation). The flip HEADLINE uses the muse NAME (Memo's call).
+const CTA_HOOK = {
+  Water: 'Water is the condition for everything that lives.',
+  Rewilding: 'The land that was razed is the first to rewild.',
+  'Renewable Energy': 'The energy was always there. The question is what we do with it.',
+  'Zero Hunger': 'The earth already knows how to feed us.',
+};
+// Body in cocoex voice (Version B), accurate to what the two programmes actually are: a Stardust is
+// artist-led (work → Comets → sold → proceeds to the NGO); a Horizon is community-led (a Future Lab
+// where a community imagines the change, then it's carried to an NGO). See content/campaigns/*.md.
+const CTA_BODY = "A Stardust turns an artist's work into Comets, sold to fund the cause. A Horizon gathers a community in a Future Lab to imagine the change and carry it to an NGO.";
+const CTA_CLOSE = 'Still waiting for its first campaign.';
+const CTA_ACTION = 'Start';
+
+// A pre-filled mailto: to the cocoex address for a given cause (no backend, no third party).
+const ctaMailto = (cause) =>
+  `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Starting a campaign for ${cause}`)}`
+  + `&body=${encodeURIComponent(`I'd like to start a campaign for ${cause} with cocoex.`)}`;
+
+// The dormant muses = MUSES whose slug appears in NO campaign's `muse` field (computed against the
+// FULL archive, not the current globe sample — dormancy is an archive fact, not a per-view one).
+// Returns one CTA descriptor per dormant muse, in MUSES order; buildItems REPEATS these across the
+// globe's surplus vertices (each gets the per-muse 'cta-<slug>' campKey so arrangeOnGraph spreads a
+// muse's repeats apart). `symbol` is the white muse glyph the chips + list marker already use.
+function dormantMuseCTAs(allCampaigns) {
+  const active = new Set(allCampaigns.map((c) => c.muse).filter(Boolean).map((m) => String(m).toLowerCase()));
+  return MUSES
+    .filter((m) => !active.has(m.name.toLowerCase()))
+    .map((m) => {
+      const slug = m.name.toLowerCase();
+      return {
+        kind: 'muse-cta',
+        cause: m.cause,
+        museName: m.name,
+        museSlug: slug,
+        hex: MUSE_HEX[slug] || '#888',
+        symbol: withBase('/assets/images/muse/' + slug + '-white.png'),
+        headline: `${m.name} has no campaign yet.`, // muse NAME, not the cause (Memo)
+        hook: CTA_HOOK[m.cause] || '',
+        action: ctaMailto(m.cause),
+      };
+    });
+}
+
+// Dormant-muse CTA descriptors, computed once from the full archive at boot (see boot()).
+let dormantCTAs = [];
 
 // Halo radius = geometric-equator projection × this. <1 pulls the ring in from the
 // radius-2 equator onto the PERCEIVED tile-cloud edge (round 6 — halo was oversized).
@@ -61,6 +124,10 @@ async function boot() {
 
   // The list is the complete, honest archive (layer 4 find/scan view).
   renderList(campaigns);
+  // Dormant causes (no campaign yet) → CTA discs on the globe + an accessible invite block in the
+  // list (G-H). Computed ONCE from the full archive so dormancy doesn't flicker with the sample.
+  dormantCTAs = dormantMuseCTAs(realCampaigns(campaigns));
+  renderInvite();
   // The globe is a BOUNDED view (decision G-A/S-1): a session-stable random sample of up to
   // 42 campaigns (the full icosahedron — muses left the globe, so no vertices are reserved).
   // makeSeed() keeps it stable within the visit, fresh next time. Filters replace this with
@@ -76,14 +143,23 @@ async function boot() {
 // Each campaign is expanded into "leaves" (one tile per photo) so the duplicate circles a
 // campaign occupies show DIFFERENT photos but all open the same record page (selection
 // .expandToLeaves — Memo's "leaves & root"). The list/filters stay campaign-based.
+const MUSE_HEXES = Object.values(MUSE_HEX);
+
+// The globe draws each photo into a tiny circle, so it loads the build-time WebP THUMBNAIL
+// (/assets/images/<slug>/thumb/<name>.webp) rather than the 1–1.6MB original — far less to
+// download (the record pages still use the full-res files). Mirror of thumbs.mjs's path; a
+// missing thumb degrades to a plain disc (loadImage resolves null). Round-absolute, no base —
+// same as how the globe already loads photos.
+const thumbUrl = (p) => (p ? p.replace(/\/([^/]+)\.[^.]+$/, '/thumb/$1.webp') : p);
+
 function buildItems(campaigns) {
-  return expandToLeaves(campaigns).map((c) => ({
+  const items = expandToLeaves(campaigns).map((c) => ({
     kind: 'campaign',
     title: c.title,
     cause: c.cause,
     summary: c.summary,
     hex: c.hex,
-    hero: c.hero || null, // the LEAF's photo (root-absolute /assets/images/<slug>/<file>, D-4)
+    hero: thumbUrl(c.hero) || null, // the LEAF's photo as a small globe thumbnail (full-res stays on record pages)
     url: c.url,
     hasPage: c.hasPage,
     type: c.type,
@@ -91,6 +167,40 @@ function buildItems(campaigns) {
     status: c.status,
     year: c.year,
   }));
+  // Dormant-cause CTA discs (G-H) fill ALL the surplus vertices — each dormant muse REPEATS across
+  // several discs (like a campaign's "leaves"), so every non-photo circle is a tappable invitation
+  // and none reads as dead decoration (Memo). Cycling round-robin spreads the repeats ~evenly; the
+  // per-muse `slug` ('cta-<muse>') gives each muse its own campKey so arrangeOnGraph keeps a muse's
+  // own repeats off adjacent vertices (different muses adjacent is fine). The CTAs sit on the globe
+  // regardless of the active filter — the gap they mark is a permanent archive fact.
+  if (dormantCTAs.length) {
+    for (let i = items.length, k = 0; i < CAMPAIGN_CAP; i++, k++) {
+      const cta = dormantCTAs[k % dormantCTAs.length];
+      items.push({
+        ...cta,
+        slug: `cta-${cta.museSlug}`,    // per-muse campKey → arrangeOnGraph spreads a muse's repeats
+        hero: null, url: null, hasPage: false,
+        title: cta.cause, summary: null, type: null, number: null, status: null, year: null,
+      });
+    }
+    return items;
+  }
+  // Fallback (every cause activated → no dormant muses): fill the surplus with plain muse-colour
+  // discs rather than REPEATING photos. The sphere has CAMPAIGN_CAP vertices but rarely that many
+  // distinct campaign photos, so the surplus vertices become decorative discs (kind:'spacer',
+  // hero:null → procedural coloured disc, inert on tap). Named 'spacer' (not 'filler') to avoid
+  // colliding with the build's `filler` campaigns.json field (a content density-tile).
+  // Guarantees no photo is ever shown twice ("don't show the same circle"); colours cycle the seven
+  // muses; arrangeOnGraph keeps same-colour discs off adjacent vertices (campKey falls back to hex).
+  for (let i = items.length; i < CAMPAIGN_CAP; i++) {
+    items.push({
+      kind: 'spacer',
+      hex: MUSE_HEXES[i % MUSE_HEXES.length],
+      hero: null, url: null, hasPage: false,
+      title: '', cause: null, summary: null, type: null, number: null, status: null, year: null,
+    });
+  }
+  return items;
 }
 
 function maybeInitGlobe(landing, allCampaigns) {
@@ -346,7 +456,27 @@ function fillFlip(item) {
   if (!front || !back) return;
   front.style.setProperty('--accent', item.hex || '#111');
   back.style.setProperty('--accent', item.hex || '#ffffff');
-  front.classList.remove('has-hero');
+  front.classList.remove('has-hero', 'is-cta');
+  back.classList.remove('is-cta');
+
+  // muse-cta — a dormant cause inviting its first campaign (G-H). FRONT mirrors the cocoex muse-orbit
+  // disc: just the muse SYMBOL, engraved + MUTED (it reads inactive — no cause word, it doesn't fit).
+  // BACK puts the cause on the eyebrow arch (like campaigns), the muse NAME above "has no campaign
+  // yet" (so all four read consistently), then the myth hook + shared body + a mailto: "Start" button
+  // (NOT an Explore→record-page link — there is no record yet).
+  if (item.kind === 'muse-cta') {
+    front.classList.add('is-cta');
+    front.innerHTML = `<span class="tile-flip-cta-symbol" style="--glyph:url('${esc(item.symbol)}')" aria-hidden="true"></span>`;
+    back.classList.add('is-cta');
+    const body = [CTA_BODY, CTA_CLOSE].filter(Boolean).join(' ');
+    back.innerHTML = rimSvg(item.cause) + `
+      <h2 class="tile-flip-name tile-flip-cta-name">${esc(item.museName)}</h2>
+      <p class="tile-flip-cta-status">has no campaign yet</p>
+      ${item.hook ? `<p class="tile-flip-cta-hook">${esc(item.hook)}</p>` : ''}
+      <p class="tile-flip-desc tile-flip-cta-desc">${esc(body)}</p>
+      <a class="tile-flip-action" href="${esc(item.action)}">${esc(CTA_ACTION)}</a>`;
+    return;
+  }
 
   // campaign — the FRONT mirrors the WebGL tile (hero photo cover-fit + accent wash + label, or
   // the accent disc + label) so the morph grows from the SAME image the tile shows (round 8 / A).
@@ -498,6 +628,8 @@ function initFlip(canvas, globe) {
   });
   canvas.addEventListener('pointerup', (e) => {
     if (moved || Date.now() - t0 >= 400 || !currentFocus) return;
+    if (currentFocus.kind === 'spacer') return;   // decorative muse disc — nothing to open
+
     const rect = globe?.getActiveTileScreen();
     if (!rect) return;
     // Hit the WHOLE disc, not just the symbol. The vertex shader spherises the quad so the
@@ -769,6 +901,40 @@ function renderList(campaigns) {
     li.appendChild(inner);
     ul.appendChild(li);
   }
+}
+
+// ── dormant-cause invitation (G-H) — the ACCESSIBLE peer of the globe's CTA discs ──────────────
+//    The globe flip is pointer-only, so keyboard / screen-reader visitors get the same invitation
+//    here, in the list. A distinct sub-section with its OWN heading — NOT fake archive rows (honours
+//    A-4 / list honesty): each dormant cause is a real mailto: link, the same the disc opens.
+function renderInvite() {
+  const section = document.querySelector('.observatory-invite');
+  if (!section) return;
+  if (!dormantCTAs.length) { section.hidden = true; section.innerHTML = ''; return; }
+
+  // Rows reuse the archive's OWN markup (.observatory-list-*) so they're visually identical to the
+  // real list — the muse glyph "logo", the eyebrow/name/meta stack, the go arrow, and all the
+  // list-inverse + glass-hover styling come for free. Mapping: eyebrow = cause · "No campaign yet"
+  // (the archive's type·cause·status rhythm), name = muse name (matches the flip headline), meta =
+  // the muse's myth hook. The link is the mailto: (not a record-page href).
+  const rows = dormantCTAs.map((cta) => `
+    <li class="observatory-list-item">
+      <a class="observatory-list-link" href="${esc(cta.action)}" style="--accent:${esc(cta.hex)}">
+        <span class="observatory-list-glyph" style="--glyph:url('${esc(cta.symbol)}')" aria-hidden="true"></span>
+        <span class="observatory-list-text">
+          <span class="observatory-list-eyebrow">${esc(cta.cause)} · No campaign yet</span>
+          <span class="observatory-list-name">${esc(cta.museName)}</span>
+          <span class="observatory-list-meta">${esc(cta.hook)}</span>
+        </span>
+        <span class="observatory-list-go" aria-hidden="true">Start →</span>
+      </a>
+    </li>`).join('');
+
+  section.innerHTML = `
+    <h2 id="observatory-invite-title" class="observatory-invite-title">Muses without a campaign yet</h2>
+    <p class="observatory-invite-intro">${esc(CTA_BODY)}</p>
+    <ul class="observatory-list-items">${rows}</ul>`;
+  section.hidden = false;
 }
 
 function esc(s) {

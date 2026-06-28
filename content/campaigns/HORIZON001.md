@@ -6,6 +6,7 @@ year: 2024
 location:                  # list — one entry per place
   - Carezzano, Colli Tortonesi · Italy
 hero: 00-hero.jpg                # cover circle → assets/images/horizon001/
+heroFocus: center 59%            # two-row group photo — placed via /horizon001/#place to catch both rows
 images:                    # full gallery (page) + extra globe leaves — order follows filename
   - 1.jpg
   - 2.jpg

@@ -5,6 +5,159 @@
 > first. Earlier per-round build decisions live in
 > [archive/build-history.md](archive/build-history.md).
 
+## 2026-06-28 — Dormant-muse CTA discs on the globe (Memo + Claude)
+
+Turning the globe's dead decoration into a call to action. cocoex has 7 muses = 7 causes, but only
+some are "activated" (have a campaign); the rest were padded with inert `spacer` discs (G-F). Memo's
+idea: give each **dormant** cause an interactive invitation instead. Layer-4 only — a sanctioned
+extension of the globe (G-D's freeze was satisfied long ago; same rationale as the V-3/V-8 flip work).
+Brief: `edit2706.md` (its "globe out of scope" line is amended). Concept firmed in
+`~/.claude/plans/do-these-too-graceful-comet.md`; revised after Memo's review per
+`~/.claude/plans/there-are-so-many-mossy-deer.md`.
+
+- **G-H · Dormant causes become CTA discs (flip → invitation + `mailto:`); they REPEAT to fill the
+  globe; the list carries the same invitation.** The dormant muses = `MUSES` whose slug appears in NO
+  campaign's `muse` (computed against the FULL archive, not the per-load globe sample, so dormancy
+  doesn't flicker) — today Lunes/Water · Ares/Rewilding · Thunor/Renewable Energy · Dosei/Zero Hunger.
+  `buildItems` fills **all** the surplus vertices (those past the campaign leaves) with `kind:'muse-cta'`
+  tiles, **repeating** the dormant muses round-robin (each appears on several discs, like a campaign's
+  "leaves") — so today's 25 leaves + 17 CTAs = 42 and **no disc is blank**. The disc FRONT mirrors the
+  cocoex-website **muse-orbit disc**: just the real white **muse symbol** (the `<muse>-white.png` glyph,
+  NOT a generic mark — Memo) at ~78%, engraved, but at **0.5 opacity** so a dormant cause reads
+  **inactive/muted** (no cause word — it didn't fit). The flip BACK puts the **cause on the eyebrow
+  arch** (like a campaign card), the **muse NAME** ("Thunor") on its own line **above** a quiet "has no
+  campaign yet" status line (so all four read consistently), then the muse's myth hook (from `data.js`),
+  a shared body in cocoex voice (a Stardust turns an artist's work into Comets sold to fund the cause;
+  a Horizon gathers a community in a Future Lab) and a **`mailto:`** **"Start"** button prefilled to
+  cocoex's Proton address — NOT an Explore→record-page link (there is no record yet). Contact route is
+  `mailto:` by design: zero backend (honours B-1), no third party (honours the Proton/privacy stance).
+  Each tile gets a per-muse `slug` (`cta-<muse>`) so `arrangeOnGraph` keeps a muse's OWN repeats off
+  adjacent vertices (different muses adjacent is fine). The CTAs sit on the globe regardless of the
+  active filter (the gap they mark is a permanent archive fact). `spacer` discs (G-F) remain only as the
+  **zero-dormant fallback** (every cause activated → nothing to invite → pad with blank discs as before).
+  *Accessibility parity:* the globe flip is pointer-only, so the list view carries a distinct
+  **"Muses without a campaign yet"** sub-section. Its rows **reuse the archive's own `.observatory-list-*`
+  markup verbatim** (the muse-glyph "logo" + eyebrow `cause · No campaign yet` / name = muse / meta =
+  hook + a "Start →" arrow, with the list's glass-hover + inverse styling) so it reads as a sibling of
+  the real list, not a parallel style — the `mailto:` is the only difference from an archive row. It is
+  NOT injected INTO the campaign list (honours A-4 / list honesty) — a separate `<section>` with its own
+  heading, never an `<li>` in the campaign `<ul>`.
+  *Why:* the surplus vertices were dead decoration; repeating the dormant muses makes the GAP both
+  visible and *present* (Memo: "so many empty circles"), and inviting participation is genuine
+  campaigning, not filler. Using the real muse symbols (not a "+"), the muted orbit-disc look, the
+  muse-name headline + cocoex-voice body, and the reused list rows all keep it a sibling of what we
+  already built (Memo: "use what we already built together as reference").
+  *Apply:* `observatory.js` (`dormantMuseCTAs`/`ctaMailto`/CTA copy consts, `buildItems` repeat-to-fill,
+  `fillFlip` muse-cta branch, `renderInvite` reusing `.observatory-list-*`), `tile-atlas.js`
+  (`drawMuseCtaCell` muted-symbol + the `muse-cta` symbol preload), `globe.js`
+  (`SIZE_BY_KIND['muse-cta']`), `observatory.css` (`.tile-flip-*.is-cta`, `.tile-flip-cta-*`, and just
+  the bespoke `.observatory-invite` section header/intro — rows borrow `.observatory-list-*`),
+  `index.html` (`.observatory-invite` section).
+  *Refines:* **G-F** (the surplus-vertex fill is now repeated muse-symbol CTAs whenever a cause is
+  dormant; blank spacers are only the zero-dormant fallback).
+  *Eyeball-tunable:* the exact copy, the front symbol size/mute opacity, the disc size (1.0 vs
+  campaigns' 0.9), and how many causes are dormant (data-derived — activating a muse's first campaign
+  drops its CTA and frees its discs back to the remaining dormant muses).
+
+## 2026-06-27 — Comet-branding pass on the campaign side + globe fidelity (Memo + Claude)
+
+Carrying the cocoex website's **Comet Collab toggle** look (off-white, Canela, big uppercase
+titles, two-column editorial, the liquid-glass rainbow "beam") into the list + record pages,
+plus three globe-fidelity fixes Memo flagged while reviewing. Brief: `edit2706.md`. Still
+layer-4 (G-D holds — none of these reopen device-polish; the globe ones are selection/asset/perf).
+
+- **V-9 · Record page = two-column editorial (header + paired data row).** Restructured from the
+  V-7 single stack to: a full-width **header** (muse crest · eyebrow band `STARDUST 001 · CAUSE ·
+  YEAR` · big uppercase title · full-width muse rule · location), a centred **lede/standfirst**
+  (reuses the index `summary`), then a two-column **data row** — the factual block beside the
+  campaign as **numbered steps** (Choose · Create · Raise · Impact; Horizon inserts **Future Lab**
+  as a plain numbered item — *no* "+Horizon" badge, removed at Memo's call). The whole campaign-page
+  text is **centre-aligned** on desktop (echoes the list page, kills the left-heavy void); on mobile
+  the process reads **above** the dense facts card (non-interactive blocks, so the CSS reorder
+  doesn't disturb tab order). The single **beam** lives once per page as a `.beam-glow` rainbow rim
+  on the back-to-Observatory **pill** (ported from `cocoex-website` `base.css`/`comet.css`).
+  *Reading order stays title → story → facts → steps* (columns are CSS only) — the a11y backbone.
+  *Why:* the archive should read as a sibling of the main site; the first cut floated the steps in a
+  void and the lede collided with the facts card (Memo screenshots). Steps are **labels-only** (the
+  toggle's step *bodies* were dropped — Memo wanted a tighter right column).
+  *Apply:* `record-template.mjs` (`renderSteps`, header/lede/data-grid markup, muse crest, beam pill),
+  `record.css` (`.record-header`/`-title`/`-story`/`-data-grid`/`-steps*`/`-muse`, beam port).
+  *Supersedes:* **V-7**'s `object-fit: cover` 4:5/16:9 hero (see V-10b) and single-column order.
+
+- **V-10a · List view → "the archive".** The light list mode is restyled to the comet idiom:
+  off-white, uppercase Canela title with a single animated **muse-spectrum hairline beam** beneath
+  it, rows that keep their eyebrow/name/meta but gain a **bleeding glass hover** — a soft muse-tint
+  highlight that extends past the text into the row gutters, carrying a subtle feTurbulence grain
+  (two pseudos behind the row; fades in; gentle `translateX` nudge). A11y: the small row eyebrow +
+  arrow go **ink** on white (pale muses fail AA as 11px text), the muse glyph is deepened so pale
+  hues stay perceptible, the beam freezes under reduced-motion. The "The Archive" kicker tried above
+  the title was removed (Memo).
+  *Apply:* `index.html` (header markup), `observatory.css` (`.archive-beam`, `.observatory-list-*`
+  light-mode rules + hover pseudos). The list stays a real `<ul>/<li>` — the accessible backbone.
+
+- **V-10b · Hero = full-bleed band + focal point + parallax.** The record hero is now a deliberate
+  **edge-to-edge full-bleed band** (escapes the centred `.record` + body padding via
+  `calc(50% - 50vw)`), clamped to a cinematic height. Crop placement is controllable per campaign:
+  **`heroFocus`** frontmatter (CSS `object-position`, default `center 30%` so heads survive) plus a
+  **parallax drift** (the image sits taller than its clipped frame and moves slower than the page on
+  scroll, revealing more; rAF-throttled, **frozen** under reduced-motion). A dev-only **`#place`**
+  drag tool (open `/<slug>/#place`, drag the band) prints the exact `heroFocus` value to paste —
+  inert without the hash.
+  *Why:* the V-7 centre-crop lopped heads off group photos (Memo); a focal point + parallax + a
+  placement tool let him frame each banner without trial-and-error markdown edits.
+  *Apply:* `record-template.mjs` (`heroFocus` → `--hero-focus`, inlined parallax + `#place` script),
+  `record.css` (`.record-hero` frame + img sizing + reduced-motion pin). horizon001 set to
+  `center 59%`. *Supersedes:* V-7's responsive aspect-ratio hero crop.
+
+- **D-6 · `globeExclude` — keep a photo in the gallery but off the globe.** A frontmatter list of
+  bare filenames the build emits as rooted paths; `selection.expandToLeaves` filters them out of the
+  globe leaf pool while the record-page gallery keeps them. Used on STARDUST001 to drop the text
+  **poster** (`1.jpg`) — it read poorly cropped to a disc.
+  *Why:* Memo — text/poster images shouldn't become globe circles, but belong in the gallery.
+  *Apply:* `build.mjs` (index `globeExclude`, omitted when empty), `selection.js` (`expandToLeaves`
+  exclude set). Added to the `CampaignIndex` typedef + `data-schema.md`.
+
+- **G-F · Globe fills surplus vertices with muse-colour discs — never a repeated photo.** The 42
+  vertices rarely have 42 distinct photos (today: 25 leaves), so the old fill **cycled** the pool,
+  repeating ~17 circles. Now `buildItems` pads the pool to `CAMPAIGN_CAP` with decorative
+  **`kind:'spacer'`** muse-colour discs (cycling the seven muse hexes; rendered as the bare
+  procedural disc — no label/symbol — and **inert on tap**). With the pool == vertex count,
+  `arrangeOnGraph` no longer cycles, so **no photo is ever shown twice**; campaigns stay balanced via
+  the per-campaign cap (V-6).
+  *Why:* Memo — "don't show the same circle"; repeated identical photos read as a bug. Chosen from
+  options (muse-disc fill vs. all-photos-no-cap vs. sparser globe).
+  *Apply:* `observatory.js` (`buildItems` padding, spacer-skip in the flip tap), `tile-atlas.js`
+  (skip spacer foreground). *Refines:* **V-6**/`arrangeOnGraph` (its "few distinct photos repeat
+  across 42 vertices" case is now filled with discs, not duplicates). The client kind is named
+  **`spacer`** (not `filler`) so it can't be confused with the build's unrelated `filler` index
+  field (a content density-tile).
+
+- **G-G · Globe seed is per-page-load random (amends G-B).** `makeSeed()` now caches the seed in a
+  **module variable** (fresh each page load) instead of `sessionStorage`. It stays stable *within* a
+  load (so "clear filter" returns the same landing, and back-forward cache keeps the globe on Back),
+  but **re-rolls on every refresh** — so reloading lands on a different random arrangement.
+  *Why:* Memo — every refresh reproduced the same landing (sessionStorage survived reloads). G-B's
+  intent ("random per visit, stable mid-exploration") is preserved; "visit" is now a page load.
+  *Apply:* `selection.js` (`makeSeed`). *Amends:* **G-B** (seed-once-per-session → per-load).
+
+- **P2.1 (partial) · Globe-tile thumbnails via `sharp`.** The globe drew full-res photos
+  (1–1.6 MB each) into ~512px circles and waited for *all* before any showed — slow. A build step
+  now generates a **512px WebP** next to each photo (`<slug>/thumb/<name>.webp`, ~50 KB; ~40 MB →
+  ~1.5 MB); the **globe loads the thumbnail**, record pages keep the full-res original. Generated in
+  the vite plugin's `buildStart` (dev start + before the build copies `public/`→`dist/`), cached
+  (skip if newer than source), **gitignored**, non-fatal (a missing thumb → plain disc).
+  *Why:* Memo — circles took long to load. `sharp` is now a **build-time devDep** (never in the
+  client bundle, verified). *Apply:* `scripts/observatory/thumbs.mjs`, `vite-plugin-observatory.mjs`
+  (`buildStart`), `observatory.js` (`thumbUrl` swap in `buildItems`). *Advances:* the deferred
+  `sharp` downscaling (D-4 / questions.md) — for the globe; original web-copy downscaling stays the
+  manual `sips` pass.
+
+- **Bugfix · record template reads the *derived* type/number.** `renderRecordPage` read
+  `meta.type`/`meta.number` (never in frontmatter — they're filename-derived per D-1), so **every**
+  record page's eyebrow said "Stardust" and the type-specific **facts block never rendered**. Fixed
+  at the call site: `build.mjs` folds `p.index.type`/`number` into the `meta` passed to the template.
+  Horizon pages now show "Horizon", their facts, and the Future Lab step.
+
 ## 2026-06-26 — Safari-mobile globe fix + drag weight (branch `fix/safari-globe-squish`)
 
 The globe shipped correct on Chrome/desktop, but Memo found two mobile-Safari problems: the round
@@ -367,6 +520,8 @@ together.
   *Why:* keeps the globe a fixed, performant size regardless of archive growth, and gives
   the "you happen to be on these" ambient feel Memo wants.
   *Apply:* seed once per session so tiles don't reshuffle mid-exploration; fresh next visit.
+  *Amended 2026-06-27 (G-G): "per session" is now per page-load — the seed re-rolls on every
+  refresh; the why above still holds. See G-G.*
 
 - **G-C · Grid/list is a first-class peer.** Not a hidden "fallback".
   *Why:* for *finding* and *scanning* a list is strictly better than a globe; it's also

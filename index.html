@@ -68,8 +68,17 @@
   <!-- Accessible / reduced-motion / no-WebGL2 fallback: the real campaign list -->
   <main id="observatory-list" class="observatory-list" aria-label="Campaign archive">
     <h1 class="observatory-list-title">Muse Observatory</h1>
+    <span class="archive-beam" aria-hidden="true"></span>
     <p class="observatory-list-intro">The archive of cocoex's Stardust and Horizon campaigns.</p>
     <ul class="observatory-list-items"><!-- built from campaigns.json by observatory.js --></ul>
+
+    <!-- Dormant-cause invitation (G-H): the accessible peer of the globe's CTA discs. A distinct
+         sub-section (NOT archive rows — keeps the list honest, A-4) inviting a champion for the
+         causes that have no campaign yet. Built by observatory.js (renderInvite); empty if every
+         cause is active. -->
+    <section class="observatory-invite" aria-labelledby="observatory-invite-title" hidden>
+      <!-- contents built from the dormant muses by observatory.js -->
+    </section>
   </main>
 
   <script type="module" src="/src/observatory/observatory.js"></script>

@@ -73,7 +73,7 @@ const ATTRIB = { aModelPosition: 0, aModelUvs: 1, aInstanceMatrix: 2, aInstanceC
 // Round 8 — narrowed the muse↔campaign size gap (was 0.5 / 1.0 = 2×). A 2× gap meant NO single
 // zoom could keep a centred campaign tile inside the frame AND keep a centred muse from looking
 // tiny (Memo: "not bleeding, not too small"). 0.66 / 0.9 (≈1.36×) gives a usable zoom range.
-const SIZE_BY_KIND = { muse: 0.66, campaign: 0.9 };
+const SIZE_BY_KIND = { muse: 0.66, campaign: 0.9, 'muse-cta': 1.0 }; // CTA discs sit a touch larger than campaigns so the invitation draws the eye (G-H)
 
 // #rrggbb / #rgb → [r,g,b] in 0..1 (for the procedural-disc accent attribute).
 function hexToRgb(hex) {

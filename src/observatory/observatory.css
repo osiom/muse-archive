@@ -153,14 +153,30 @@ body.globe-active.list-view #observatory-halo { display: none; }
 }
 .observatory-list-title {
   margin: 0 0 8px;
-  font-weight: 800;                  /* the title reads bold (was 700) */
-  font-size: clamp(32px, 6vw, 56px);
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: clamp(36px, 7vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;         /* big uppercase serif title (toggle idiom) */
   text-align: center;
   text-wrap: balance;                /* never strand a single word on its own line */
 }
+/* the ONE spectrum beam on this page: a thin animated muse-rainbow rule under the title.
+   The gradient ends on its start colour so the slide loops seamlessly; frozen for reduced-motion. */
+.archive-beam {
+  display: block;
+  width: clamp(120px, 28vw, 260px);
+  height: 3px;
+  margin: clamp(20px, 3vw, 28px) auto 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg,
+    #D54D2E, #D48348, #F8D86A, #8CB07F, #5783A6, #5E47A1, #7F49A2, #D54D2E);
+  background-size: 200% 100%;
+  animation: beam-flow 14s linear infinite;
+}
+@keyframes beam-flow { to { background-position: -200% 0; } }
 .observatory-list-intro {
-  margin: 0 0 clamp(32px, 6vw, 56px);
+  margin: clamp(20px, 3vw, 28px) 0 clamp(32px, 6vw, 56px);
   color: rgba(255, 255, 255, 0.6);
   font-size: clamp(16px, 1.8vw, 20px);
   text-align: center;
@@ -262,6 +278,86 @@ body.list-view .observatory-list-meta,
 body.list-only .observatory-list-meta { color: rgba(0, 0, 0, 0.5); }
 body.list-view .observatory-list-soon,
 body.list-only .observatory-list-soon { color: rgba(0, 0, 0, 0.4); }
+/* a11y: the small eyebrow + arrow go INK on white — a pale muse hue (thunor/rabu) fails AA as
+   11px text on #FAFAFA. The muse colour still rides each row via the glyph marker (below). */
+body.list-view .observatory-list-eyebrow,
+body.list-only .observatory-list-eyebrow { color: rgba(0, 0, 0, 0.55); }
+body.list-view .observatory-list-go,
+body.list-only .observatory-list-go { color: rgba(0, 0, 0, 0.4); }
+/* a11y: deepen the muse glyph just enough that the pale muses stay perceptible on off-white
+   (a raw thunor/rabu marker nearly vanished); the hue identity is preserved. */
+body.list-view .observatory-list-glyph,
+body.list-only .observatory-list-glyph {
+  background: color-mix(in srgb, var(--accent) 85%, #1a1a1a);
+}
+/* glass hover (light archive): a soft muse-tint highlight that BLEEDS past the text into the row
+   gutters (so it never crops tight on the titles), carrying a subtle feTurbulence grain. Two
+   pseudos sit behind the row content (::before = tint, ::after = grain); the row itself stays
+   transparent + relatively-positioned. Fades in on hover; a gentle nudge stays. */
+body.list-view .observatory-list-link,
+body.list-only .observatory-list-link { position: relative; }
+body.list-view .observatory-list-link::before,
+body.list-only .observatory-list-link::before,
+body.list-view .observatory-list-link::after,
+body.list-only .observatory-list-link::after {
+  content: "";
+  position: absolute;
+  inset: 1px calc(-1 * clamp(16px, 4vw, 40px));   /* bleed left/right into the gutter */
+  z-index: -1;
+  border-radius: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease-out);
+}
+body.list-view .observatory-list-link::before,
+body.list-only .observatory-list-link::before {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+body.list-view .observatory-list-link::after,
+body.list-only .observatory-list-link::after {
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 150px 150px;
+}
+@media (hover: hover) and (pointer: fine) {
+  body.list-view a.observatory-list-link:hover,
+  body.list-only a.observatory-list-link:hover { transform: translateX(8px); }
+  body.list-view a.observatory-list-link:hover::before,
+  body.list-only a.observatory-list-link:hover::before { opacity: 1; }
+  body.list-view a.observatory-list-link:hover::after,
+  body.list-only a.observatory-list-link:hover::after { opacity: 0.14; }
+}
+
+/* ── dormant-cause invitation (G-H) — the accessible peer of the globe's CTA discs ──────────────
+   A distinct, labelled sub-section under the archive list (NOT archive rows — honours A-4). Its ROWS
+   reuse the archive's own `.observatory-list-*` markup verbatim (muse-glyph logo + eyebrow/name/meta
+   + go arrow + the glass hover/inverse styling) so it reads as a sibling of the real list, not a
+   parallel style. Only this section header + intro are bespoke. Lives inside <main>, so it shows
+   only when the list is the page (list-view toggle / no-WebGL / reduced-motion) — always off-white. */
+.observatory-invite {
+  margin-top: clamp(48px, 9vw, 96px);
+  padding-top: clamp(32px, 5vw, 56px);
+  border-top: 1px solid rgba(0, 0, 0, 0.14);
+}
+.observatory-invite-title {
+  margin: 0 0 10px;
+  font-family: var(--font-canela);
+  font-weight: 700;
+  font-size: clamp(24px, 4vw, 40px);
+  line-height: 1.02;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+  color: #1a1a1a;
+}
+.observatory-invite-intro {
+  margin: 0 0 clamp(20px, 3vw, 32px);
+  max-width: 52ch;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: clamp(15px, 1.7vw, 18px);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
 
 /* ── @property + spin keyframe (the conic muse base under .pill-glass uses --beam-angle) ─── */
 @property --beam-angle {
@@ -891,6 +987,58 @@ body.globe-active .filter-wrap { display: flex; }
 .tile-flip-action:active { scale: 0.97; }   /* press feedback (Emil) */
 .tile-flip-action--inert { opacity: 0.5; }
 
+/* ── dormant-muse CTA disc (G-H) ─────────────────────────────────────────────────────────────
+   FRONT mirrors the cocoex muse-orbit disc: just the white muse SYMBOL at ~78%, engraved, but MUTED
+   so a dormant cause reads INACTIVE (no cause word — it didn't fit). BACK puts the cause on the
+   eyebrow arch, the muse name above "has no campaign yet", then the hook + invitation + "Start". */
+.tile-flip-cta-symbol {
+  position: relative;
+  z-index: 2;
+  width: 78%;                 /* match the muse-orbit symbol-to-disc ratio */
+  height: 78%;
+  opacity: 0.5;               /* MUTED: dormant = inactive-looking (Memo) */
+  /* the white muse glyph, via a mask (matches the list marker idiom), engraved so it holds on the
+     lighter muse hues (thunor/rabu). */
+  background: #fff;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+          mask: var(--glyph) center / contain no-repeat;
+  filter:
+    drop-shadow(0 2px 1px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 -1px 1px rgba(255, 255, 255, 0.3))
+    drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3));
+}
+/* BACK: more copy than a campaign summary → trim the top padding so the full invitation seats
+   inside the disc's inscribed square. */
+.tile-flip-back.is-cta { padding-top: clamp(34px, 14%, 60px); }
+.tile-flip-cta-name { margin-bottom: 2px; }
+/* "has no campaign yet" — the quiet status line directly under the muse name (Memo: name above it,
+   consistent + easier to read). */
+.tile-flip-cta-status {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 10px;
+  font-size: clamp(13px, 1.5vw, 16px);
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.72);
+}
+/* the muse's myth hook — quieter + italic, the muse voice. Bumped on desktop (Memo). */
+.tile-flip-cta-hook {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 8px;
+  font-size: clamp(13px, 1.6vw, 16px);
+  line-height: 1.36;
+  font-style: italic;
+  text-wrap: pretty;
+  color: color-mix(in srgb, var(--accent, #fff) 60%, #fff);
+}
+.tile-flip-cta-desc {
+  margin-bottom: 12px;
+  font-size: clamp(12px, 1.5vw, 15px);   /* desktop bump (Memo) — was a touch too small */
+  line-height: 1.42;
+  -webkit-line-clamp: 7;                 /* the CTA copy is longer than a campaign summary */
+}
+
 /* While a flip is open, HIDE the globe entirely (opacity 0, was 0.22) so the real WebGL
    tile can never show beside/behind the DOM card — the card + tile must read as ONE
    object as it grows and shrinks (round 4: a screenshot showed two discs on close). The
@@ -911,6 +1059,7 @@ body.flip-open #observatory-halo { opacity: 0.22; }
 @media (prefers-reduced-motion: reduce) {
   .filter-pill, .view-pill, .observatory-back, .tile-flip-action,
   .filter-panel, .observatory-list-link { transition: none; }
+  .archive-beam { animation: none; }
   .filter-pill:active, .view-pill:active, .observatory-back:active,
   .filter-chip:active, .tile-flip-action:active { scale: 1; }
   .filter-panel { scale: 1; }

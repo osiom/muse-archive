@@ -120,6 +120,24 @@ function drawCampaignLabel(ctx, ox, oy, item) {
   ctx.restore();
 }
 
+// dormant-muse CTA disc (G-H) FOREGROUND — just the white muse SYMBOL, engraved + MUTED, on
+// transparent, composited over the procedural muse-colour disc. Mirrors the cocoex muse-orbit disc
+// (symbol at ~78%, engrave shadow) but at lowered opacity so a dormant cause reads INACTIVE (Memo).
+// No cause word (it didn't fit; the cause rides the flip back's eyebrow arch instead).
+function drawMuseCtaCell(ctx, ox, oy, symbol) {
+  if (!symbol) return; // no glyph → just the bare procedural muse-colour disc behind it
+  const cx = ox + CELL / 2;
+  const cy = oy + CELL / 2;
+  const s = CELL * 0.78; // match the muse-orbit symbol-to-disc ratio
+  ctx.save();
+  ctx.globalAlpha = 0.5;                 // MUTED: dormant = inactive-looking
+  ctx.shadowColor = 'rgba(0,0,0,0.32)';
+  ctx.shadowBlur = CELL * 0.03;
+  ctx.shadowOffsetY = CELL * 0.012;
+  ctx.drawImage(symbol, cx - s / 2, cy - s / 2, s, s);
+  ctx.restore();
+}
+
 function drawCampaignCell(ctx, ox, oy, item, hero) {
   if (hero) {
     // hero photo (cover-fit) → contrast-soften → duotone tint → label scrim → label. The cell is
@@ -168,16 +186,18 @@ export async function buildAtlas(items) {
   canvas.height = atlasSize * CELL;
   const ctx = canvas.getContext('2d'); // starts fully transparent — the disc is procedural
 
-  // preload every cell's foreground image (muse symbol or campaign hero)
+  // preload every cell's foreground image (muse/muse-cta symbol or campaign hero)
   const imgs = await Promise.all(items.map((it) => {
-    const src = it.kind === 'muse' ? it.symbol : it.hero;
+    const src = (it.kind === 'muse' || it.kind === 'muse-cta') ? it.symbol : it.hero;
     return src ? loadImage(src) : Promise.resolve(null);
   }));
 
   items.forEach((item, i) => {
     const ox = (i % atlasSize) * CELL;
     const oy = Math.floor(i / atlasSize) * CELL;
+    if (item.kind === 'spacer') return;   // decorative disc only — leave the cell transparent so just the procedural muse-colour disc shows
     if (item.kind === 'muse') drawMuseCell(ctx, ox, oy, imgs[i]);
+    else if (item.kind === 'muse-cta') drawMuseCtaCell(ctx, ox, oy, imgs[i]); // dormant cause (G-H): muted muse symbol only
     else drawCampaignCell(ctx, ox, oy, item, imgs[i]);
   });
 
