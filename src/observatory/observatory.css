@@ -328,6 +328,37 @@ body.list-only .observatory-list-link::after {
   body.list-only a.observatory-list-link:hover::after { opacity: 0.14; }
 }
 
+/* ── dormant-cause invitation (G-H) — the accessible peer of the globe's CTA discs ──────────────
+   A distinct, labelled sub-section under the archive list (NOT archive rows — honours A-4). Its ROWS
+   reuse the archive's own `.observatory-list-*` markup verbatim (muse-glyph logo + eyebrow/name/meta
+   + go arrow + the glass hover/inverse styling) so it reads as a sibling of the real list, not a
+   parallel style. Only this section header + intro are bespoke. Lives inside <main>, so it shows
+   only when the list is the page (list-view toggle / no-WebGL / reduced-motion) — always off-white. */
+.observatory-invite {
+  margin-top: clamp(48px, 9vw, 96px);
+  padding-top: clamp(32px, 5vw, 56px);
+  border-top: 1px solid rgba(0, 0, 0, 0.14);
+}
+.observatory-invite-title {
+  margin: 0 0 10px;
+  font-family: var(--font-canela);
+  font-weight: 700;
+  font-size: clamp(24px, 4vw, 40px);
+  line-height: 1.02;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+  color: #1a1a1a;
+}
+.observatory-invite-intro {
+  margin: 0 0 clamp(20px, 3vw, 32px);
+  max-width: 52ch;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: clamp(15px, 1.7vw, 18px);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
 /* ── @property + spin keyframe (the conic muse base under .pill-glass uses --beam-angle) ─── */
 @property --beam-angle {
   syntax: '<angle>';
@@ -955,6 +986,58 @@ body.globe-active .filter-wrap { display: flex; }
 }
 .tile-flip-action:active { scale: 0.97; }   /* press feedback (Emil) */
 .tile-flip-action--inert { opacity: 0.5; }
+
+/* ── dormant-muse CTA disc (G-H) ─────────────────────────────────────────────────────────────
+   FRONT mirrors the cocoex muse-orbit disc: just the white muse SYMBOL at ~78%, engraved, but MUTED
+   so a dormant cause reads INACTIVE (no cause word — it didn't fit). BACK puts the cause on the
+   eyebrow arch, the muse name above "has no campaign yet", then the hook + invitation + "Start". */
+.tile-flip-cta-symbol {
+  position: relative;
+  z-index: 2;
+  width: 78%;                 /* match the muse-orbit symbol-to-disc ratio */
+  height: 78%;
+  opacity: 0.5;               /* MUTED: dormant = inactive-looking (Memo) */
+  /* the white muse glyph, via a mask (matches the list marker idiom), engraved so it holds on the
+     lighter muse hues (thunor/rabu). */
+  background: #fff;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+          mask: var(--glyph) center / contain no-repeat;
+  filter:
+    drop-shadow(0 2px 1px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 -1px 1px rgba(255, 255, 255, 0.3))
+    drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3));
+}
+/* BACK: more copy than a campaign summary → trim the top padding so the full invitation seats
+   inside the disc's inscribed square. */
+.tile-flip-back.is-cta { padding-top: clamp(34px, 14%, 60px); }
+.tile-flip-cta-name { margin-bottom: 2px; }
+/* "has no campaign yet" — the quiet status line directly under the muse name (Memo: name above it,
+   consistent + easier to read). */
+.tile-flip-cta-status {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 10px;
+  font-size: clamp(13px, 1.5vw, 16px);
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.72);
+}
+/* the muse's myth hook — quieter + italic, the muse voice. Bumped on desktop (Memo). */
+.tile-flip-cta-hook {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 8px;
+  font-size: clamp(13px, 1.6vw, 16px);
+  line-height: 1.36;
+  font-style: italic;
+  text-wrap: pretty;
+  color: color-mix(in srgb, var(--accent, #fff) 60%, #fff);
+}
+.tile-flip-cta-desc {
+  margin-bottom: 12px;
+  font-size: clamp(12px, 1.5vw, 15px);   /* desktop bump (Memo) — was a touch too small */
+  line-height: 1.42;
+  -webkit-line-clamp: 7;                 /* the CTA copy is longer than a campaign summary */
+}
 
 /* While a flip is open, HIDE the globe entirely (opacity 0, was 0.22) so the real WebGL
    tile can never show beside/behind the DOM card — the card + tile must read as ONE

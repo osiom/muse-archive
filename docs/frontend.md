@@ -45,11 +45,26 @@ is a *bounded view*, not navigation.
 **The budget is the full 42 campaign slots.** Muses left the globe as *navigation* (decision S-1,
 revised): `buildItems()` emits **campaign leaves** (V-6) — the old 7-muse-anchor prepend was
 removed — so the vertices hold campaigns and `CAMPAIGN_CAP = 42`. The muse facet moved into the
-filter panel. When there are fewer distinct photos than vertices (usually), `buildItems` pads the
-pool to 42 with decorative **muse-colour discs** (`kind:'spacer'`, inert) rather than repeating a
-photo — so **no circle is ever shown twice** (decision G-F). These decorative discs are *not* the
-muses returning to navigation; the kind is named `spacer` (not `filler`) to avoid confusion with
-the build's unrelated `filler` index field.
+filter panel. When there are fewer distinct photos than vertices (usually), `buildItems` fills the
+surplus — with the **dormant-cause CTA discs** (`kind:'muse-cta'`, decision G-H) whenever a cause is
+dormant, or decorative **muse-colour discs** (`kind:'spacer'`, inert) as the zero-dormant fallback —
+rather than repeating a photo, so **no circle is ever shown twice** (decision G-F). These spacer discs
+are *not* the muses returning to navigation; the kind is named `spacer` (not `filler`) to avoid
+confusion with the build's unrelated `filler` index field.
+
+**Dormant-cause CTA discs (G-H).** The causes with no campaign yet (`MUSES` whose slug is in no
+campaign's `muse`) **repeat across all the surplus vertices** (like a campaign's "leaves"), so every
+non-photo disc is a tappable invitation and none is blank. Each disc shows just the real white **muse
+symbol** (mirroring the cocoex muse-orbit disc, ~78% engraved) at **0.5 opacity** so it reads
+inactive/muted — no cause word. The flip back puts the **cause on the eyebrow arch**, the **muse name**
+above a "has no campaign yet" line, then the myth hook, a cocoex-voice body, and a `mailto:` **"Start"**
+button (no record page exists to "Explore"). A per-muse `slug` (`cta-<muse>`) lets `arrangeOnGraph` keep
+a muse's own repeats off adjacent vertices. The list view carries the same invitation as a distinct
+**"Muses without a campaign yet"** sub-section whose rows **reuse the archive's `.observatory-list-*`
+markup** (muse-glyph logo + eyebrow/name/meta + a "Start →" arrow, `mailto:` href) for
+keyboard/screen-reader parity — a separate section, never injected into the campaign list (A-4 honesty).
+Activating a muse's first campaign automatically drops its CTA and frees its discs to the remaining
+dormant muses (the set is data-derived from the full archive).
 
 **`setItems()` is a genuine, race-guarded seam** (`globe.js`): it swaps the item
 array, recomputes per-instance colour/scale, and rebuilds the atlas, with a guard against
