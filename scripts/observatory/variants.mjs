@@ -38,6 +38,8 @@ export async function generateWebVariants(idx, publicDir) {
         if (o.status === 'fulfilled' && o.value.mtimeMs >= s.value.mtimeMs) continue; // up to date
         await fs.mkdir(path.dirname(out), { recursive: true });
         await sharp(src)
+          .rotate()   // bake EXIF orientation before resize — the shipped variant replaces the
+                      // original, so the record page has no EXIF to fall back on; must be upright here
           .resize(MAX_EDGE, MAX_EDGE, { fit: 'inside', withoutEnlargement: true })
           .webp({ quality: WEB_QUALITY })
           .toFile(out);

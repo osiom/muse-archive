@@ -1126,6 +1126,7 @@ body.flip-open #observatory-halo { opacity: 0.22; }
   opacity: 1;
   transition: opacity 0.5s var(--ease-out);
 }
+.landing[hidden] { display: none; }   /* hard-hide overrides the grid (UA [hidden] loses to .landing's display) */
 /* dismiss: fade out, then observatory.js sets [hidden] on transitionend. */
 .landing.is-dismissed { opacity: 0; pointer-events: none; }
 

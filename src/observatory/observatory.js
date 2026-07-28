@@ -208,10 +208,24 @@ function buildItems(campaigns) {
 // out and reveals the sphere. Globe path only — see the call site in maybeInitGlobe. Lifts the
 // scroll-lock while visible so the overlay's own content can scroll on short viewports, then
 // restores it (the globe view is scroll-locked) on dismiss.
+const LANDING_SEEN_KEY = 'muse-landing-seen';
 function showLanding() {
   const overlay = document.getElementById('observatory-landing');
   const btn = document.getElementById('landing-explore');
   if (!overlay || !btn) return;
+
+  // First access only. Two suppressors: (1) arriving via a record page's "← Archive" link, which
+  // carries #archive — that visitor is already oriented, never show the intro; (2) a session flag
+  // set on dismiss, so any later boot in the visit stays clean. #archive also sets the flag, so a
+  // subsequent bare "/" nav (no hash) still skips it. sessionStorage (not local) so a brand-new
+  // visit/tab gets the intro. Try/catch: private-mode Safari can throw on storage.
+  const cameFromArchive = location.hash === '#archive';
+  if (cameFromArchive) {
+    try { sessionStorage.setItem(LANDING_SEEN_KEY, '1'); } catch { /* ignore */ }
+    history.replaceState(null, '', location.pathname + location.search); // drop the hash from the URL
+    return;
+  }
+  try { if (sessionStorage.getItem(LANDING_SEEN_KEY)) return; } catch { /* ignore — show it */ }
 
   overlay.hidden = false;
   document.documentElement.style.overflow = ''; // let the overlay scroll if it's taller than the viewport
@@ -220,6 +234,7 @@ function showLanding() {
   const dismiss = () => {
     if (dismissed) return;
     dismissed = true;
+    try { sessionStorage.setItem(LANDING_SEEN_KEY, '1'); } catch { /* ignore — non-fatal */ }
     overlay.classList.add('is-dismissed');
     document.documentElement.style.overflow = 'hidden'; // re-lock for the globe view
     const done = () => { overlay.hidden = true; overlay.removeEventListener('transitionend', done); };
@@ -242,7 +257,8 @@ function maybeInitGlobe(landing, allCampaigns) {
   // Landing intro — only on the globe path (list-only visitors above never reach here, so they
   // never see it; the list is self-explanatory). The globe still boots + measures normally BEHIND
   // the overlay (z-index'd on top), so Explore just fades the overlay — no globe re-init/re-measure
-  // timing to get wrong. Shown every visit (no persistence — Memo's call).
+  // timing to get wrong. Shown once per session (first access only — a sessionStorage flag set
+  // on dismiss suppresses it when returning from a record page; showLanding owns that guard).
   showLanding();
 
   const canvas = document.getElementById('observatory-globe');

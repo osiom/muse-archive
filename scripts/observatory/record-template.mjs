@@ -307,7 +307,7 @@ ${multi ? '<div class="gallery-dots" role="tablist" aria-label="Choose image"></
 </head>
 <body class="observatory-record" style="--accent:${accent}">
 ${draftBanner}
-<a class="record-back beam-glow" href="${base}">← Archive</a>
+<a class="record-back beam-glow" href="${base}#archive">← Archive</a>
 <article class="record">
 <header class="record-header">
 ${museGlyph}

@@ -39,6 +39,8 @@ export async function generateThumbs(idx, publicDir) {
         if (o.status === 'fulfilled' && o.value.mtimeMs >= s.value.mtimeMs) continue; // up to date
         await fs.mkdir(path.dirname(out), { recursive: true });
         await sharp(src)
+          .rotate()   // bake EXIF orientation (phone photos are often tagged sideways) — the tag
+                      // is stripped on WebP output, so the disc/thumb renders upright
           .resize(THUMB_PX, THUMB_PX, { fit: 'cover', position: 'centre' })
           .webp({ quality: THUMB_QUALITY })
           .toFile(out);
