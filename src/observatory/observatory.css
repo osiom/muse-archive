@@ -1169,6 +1169,24 @@ body.flip-open #observatory-halo { opacity: 0.22; }
 .landing-explore:active { transform: translateY(0) scale(0.98); }
 .landing-explore:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 
+/* narrow phones (≤480px, e.g. iPhone 13 @390px): the desktop-tuned clamp floors sit too
+   large/wide on a portrait phone. Tighten padding + type + measure so the block breathes. */
+@media (max-width: 480px) {
+  .landing { padding: 28px 18px; }
+  .landing-inner { max-width: 100%; }
+  .landing-mark { width: 88px; margin-bottom: 22px; }
+  .landing-title { font-size: clamp(26px, 8vw, 34px); }
+  .landing-lead {
+    max-width: 100%;
+    margin: 18px auto 26px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .landing-steps { max-width: 100%; gap: 12px; margin-bottom: 28px; }
+  .landing-step { font-size: 14px; gap: 10px; }
+  .landing-explore { padding: 13px 36px; font-size: 13px; }
+}
+
 /* ── beam machinery (ported from record.css / cocoex base.css) ──────────────────────────
    The Explore button's spinning muse-spectrum rim. Self-contained here so the index page
    doesn't depend on the record stylesheet. */
