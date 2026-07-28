@@ -253,6 +253,34 @@ a.observatory-list-link:focus-visible {
   outline-offset: 2px;
 }
 
+/* "View more" — reveals the archive rows past the first few (renderList). A quiet centred pill in
+   the list idiom; injected after the <ul>, removed once tapped. Inverse override sits in the
+   list-view/list-only block below (dark-on-white). */
+.observatory-list-more {
+  display: block;
+  margin: clamp(20px, 4vw, 32px) auto 0;
+  padding: 11px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out), background 0.2s ease, border-color 0.2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .observatory-list-more:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+.observatory-list-more:active { transform: scale(0.97); }
+.observatory-list-more:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
 /* ── list view INVERSE (dark-on-white) — the inverse of the space background. Applies whenever
       the list is the full page: the globe↔list toggle (body.list-view) AND the no-WebGL /
       reduced-motion fallback (body.list-only). Muse accents (glyph, eyebrow) are KEPT. ───── */
@@ -284,6 +312,21 @@ body.list-view .observatory-list-eyebrow,
 body.list-only .observatory-list-eyebrow { color: rgba(0, 0, 0, 0.55); }
 body.list-view .observatory-list-go,
 body.list-only .observatory-list-go { color: rgba(0, 0, 0, 0.4); }
+/* "View more" inverse — ink-on-white to read on the light list page */
+body.list-view .observatory-list-more,
+body.list-only .observatory-list-more {
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.65);
+}
+@media (hover: hover) and (pointer: fine) {
+  body.list-view .observatory-list-more:hover,
+  body.list-only .observatory-list-more:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.45);
+  }
+}
+body.list-view .observatory-list-more:focus-visible,
+body.list-only .observatory-list-more:focus-visible { outline-color: #1a1a1a; }
 /* a11y: deepen the muse glyph just enough that the pale muses stay perceptible on off-white
    (a raw thunor/rabu marker nearly vanished); the hue identity is preserved. */
 body.list-view .observatory-list-glyph,

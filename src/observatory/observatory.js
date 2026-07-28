@@ -901,43 +901,86 @@ function initFilters(globe, allCampaigns) {
 
 // ── accessible list fallback (REQUIRED — screen reader / keyboard / reduced-motion
 //    / no-WebGL2). Built from the same campaigns.json the globe consumes. ─────────
+// How many archive rows show before the "View more" reveal (the rest stay hidden until asked).
+const LIST_VISIBLE = 5;
+
+// Reading order (Memo): next UPCOMING → ONGOING → most-recent CLOSED. Only `status` + `year` exist
+// in the index (no per-campaign date), so year is the time key: upcoming ascends (soonest next),
+// closed descends (most recent first), ongoing sits between. Same-status+year falls back to the
+// build's type/number order for a stable tiebreak.
+const LIST_STATUS_ORDER = { upcoming: 0, ongoing: 1, closed: 2 };
+function listSort(a, b) {
+  const sa = LIST_STATUS_ORDER[a.status] ?? 9;
+  const sb = LIST_STATUS_ORDER[b.status] ?? 9;
+  if (sa !== sb) return sa - sb;
+  const ya = Number(a.year) || 0;
+  const yb = Number(b.year) || 0;
+  if (ya !== yb) return a.status === 'closed' ? yb - ya : ya - yb; // closed: newest first; else soonest first
+  if (a.type !== b.type) return String(a.type).localeCompare(String(b.type));
+  return (a.number ?? 99) - (b.number ?? 99);
+}
+
+function listRow(c) {
+  const li = document.createElement('li');
+  li.className = 'observatory-list-item';
+
+  const inner = c.url ? document.createElement('a') : document.createElement('div');
+  inner.className = 'observatory-list-link';
+  if (c.url) inner.href = c.url;
+  if (c.hex) inner.style.setProperty('--accent', c.hex);
+
+  const typeLabel = c.type === 'horizon' ? 'Horizon' : 'Stardust';
+  const num = typeof c.number === 'number' ? ` ${String(c.number).padStart(3, '0')}` : '';
+  const eyebrow = [`${typeLabel}${num}`, c.cause, c.status].filter(Boolean).join(' · ');
+  const meta = [c.year, c.location].filter(Boolean).join(' · ');
+  // The muse glyph (tinted to the muse hex via a CSS mask) replaces the plain colour dot;
+  // campaigns without a muse keep the neutral dot. withBase() keeps the path subpath-safe.
+  const marker = c.muse
+    ? `<span class="observatory-list-glyph" style="--glyph:url('${esc(withBase('/assets/images/muse/' + c.muse + '-white.png'))}')" aria-hidden="true"></span>`
+    : '<span class="observatory-list-chip" aria-hidden="true"></span>';
+
+  inner.innerHTML = `
+    ${marker}
+    <span class="observatory-list-text">
+      <span class="observatory-list-eyebrow">${esc(eyebrow)}</span>
+      <span class="observatory-list-name">${esc(c.title || c.slug)}</span>
+      ${meta ? `<span class="observatory-list-meta">${esc(meta)}</span>` : ''}
+    </span>
+    ${c.url ? '<span class="observatory-list-go" aria-hidden="true">→</span>' : '<span class="observatory-list-soon">soon</span>'}
+  `;
+
+  li.appendChild(inner);
+  return li;
+}
+
 function renderList(campaigns) {
   const ul = document.querySelector('.observatory-list-items');
   if (!ul) return;
   ul.innerHTML = '';
 
-  for (const c of campaigns) {
-    if (c.filler) continue; // globe-only density tiles aren't real archive entries — keep the list honest
-    const li = document.createElement('li');
-    li.className = 'observatory-list-item';
+  // globe-only density tiles aren't real archive entries — keep the list honest (A-4)
+  const rows = campaigns.filter((c) => !c.filler).slice().sort(listSort);
 
-    const inner = c.url ? document.createElement('a') : document.createElement('div');
-    inner.className = 'observatory-list-link';
-    if (c.url) inner.href = c.url;
-    if (c.hex) inner.style.setProperty('--accent', c.hex);
-
-    const typeLabel = c.type === 'horizon' ? 'Horizon' : 'Stardust';
-    const num = typeof c.number === 'number' ? ` ${String(c.number).padStart(3, '0')}` : '';
-    const eyebrow = [`${typeLabel}${num}`, c.cause, c.status].filter(Boolean).join(' · ');
-    const meta = [c.year, c.location].filter(Boolean).join(' · ');
-    // The muse glyph (tinted to the muse hex via a CSS mask) replaces the plain colour dot;
-    // campaigns without a muse keep the neutral dot. withBase() keeps the path subpath-safe.
-    const marker = c.muse
-      ? `<span class="observatory-list-glyph" style="--glyph:url('${esc(withBase('/assets/images/muse/' + c.muse + '-white.png'))}')" aria-hidden="true"></span>`
-      : '<span class="observatory-list-chip" aria-hidden="true"></span>';
-
-    inner.innerHTML = `
-      ${marker}
-      <span class="observatory-list-text">
-        <span class="observatory-list-eyebrow">${esc(eyebrow)}</span>
-        <span class="observatory-list-name">${esc(c.title || c.slug)}</span>
-        ${meta ? `<span class="observatory-list-meta">${esc(meta)}</span>` : ''}
-      </span>
-      ${c.url ? '<span class="observatory-list-go" aria-hidden="true">→</span>' : '<span class="observatory-list-soon">soon</span>'}
-    `;
-
-    li.appendChild(inner);
+  rows.forEach((c, i) => {
+    const li = listRow(c);
+    if (i >= LIST_VISIBLE) li.hidden = true; // overflow rows revealed by "View more"
     ul.appendChild(li);
+  });
+
+  // "View more" — reveal the rows past LIST_VISIBLE, then remove itself. Absent when the set fits.
+  const existing = document.getElementById('observatory-list-more');
+  if (existing) existing.remove();
+  if (rows.length > LIST_VISIBLE) {
+    const btn = document.createElement('button');
+    btn.id = 'observatory-list-more';
+    btn.type = 'button';
+    btn.className = 'observatory-list-more';
+    btn.textContent = `View more (${rows.length - LIST_VISIBLE})`;
+    btn.addEventListener('click', () => {
+      for (const li of ul.querySelectorAll('.observatory-list-item[hidden]')) li.hidden = false;
+      btn.remove();
+    });
+    ul.after(btn);
   }
 }
 
