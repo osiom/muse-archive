@@ -203,12 +203,47 @@ function buildItems(campaigns) {
   return items;
 }
 
+// ── landing intro overlay ───────────────────────────────────────────────────────────────
+// A short "what is this + how it works" gate shown over the (booting) globe; Explore fades it
+// out and reveals the sphere. Globe path only — see the call site in maybeInitGlobe. Lifts the
+// scroll-lock while visible so the overlay's own content can scroll on short viewports, then
+// restores it (the globe view is scroll-locked) on dismiss.
+function showLanding() {
+  const overlay = document.getElementById('observatory-landing');
+  const btn = document.getElementById('landing-explore');
+  if (!overlay || !btn) return;
+
+  overlay.hidden = false;
+  document.documentElement.style.overflow = ''; // let the overlay scroll if it's taller than the viewport
+
+  let dismissed = false;
+  const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
+    overlay.classList.add('is-dismissed');
+    document.documentElement.style.overflow = 'hidden'; // re-lock for the globe view
+    const done = () => { overlay.hidden = true; overlay.removeEventListener('transitionend', done); };
+    overlay.addEventListener('transitionend', done);
+    setTimeout(done, 700); // fallback if transitionend doesn't fire (reduced-motion: no transition)
+    btn.blur();
+  };
+
+  btn.addEventListener('click', dismiss);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) dismiss(); });
+}
+
 function maybeInitGlobe(landing, allCampaigns) {
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canWebGL2 = (() => {
     try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
   })();
   if (prefersReduced || !canWebGL2) { document.body.classList.add('list-only'); return; } // list IS the experience (inverse styling)
+
+  // Landing intro — only on the globe path (list-only visitors above never reach here, so they
+  // never see it; the list is self-explanatory). The globe still boots + measures normally BEHIND
+  // the overlay (z-index'd on top), so Explore just fades the overlay — no globe re-init/re-measure
+  // timing to get wrong. Shown every visit (no persistence — Memo's call).
+  showLanding();
 
   const canvas = document.getElementById('observatory-globe');
   if (!canvas) return;
@@ -265,7 +300,10 @@ function maybeInitGlobe(landing, allCampaigns) {
   // Lock page scroll while the globe is the view. We do this on <html> (the viewport scroller)
   // rather than body overflow — toggling overflow on the propagating <body> didn't re-enable
   // scrolling on Safari when switching to list-view. setListView clears it for the list.
-  document.documentElement.style.overflow = 'hidden';
+  // Skip the lock while the landing overlay is up (it manages its own scroll + restores the lock
+  // on dismiss) — otherwise a tall intro on a short phone would be un-scrollable.
+  const landingUp = !document.getElementById('observatory-landing')?.hidden;
+  if (!landingUp) document.documentElement.style.overflow = 'hidden';
   globe.resize();
   // iOS Safari: the address bar can still be settling at this point, so the first measure can
   // catch a transient viewport shape and stick (round tiles → ellipses). Re-measure after the

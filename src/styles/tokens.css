@@ -1,4 +1,4 @@
-/* Design tokens — trimmed to what the Muse Observatory uses.
+/* Design tokens — trimmed to what the Muse Archive uses.
    The 7 muse hexes are the canonical brand source (build.mjs reads them by
    regex; observatory.js reads them via getComputedStyle, with a JS fallback). */
 :root {

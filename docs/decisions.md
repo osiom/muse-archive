@@ -5,6 +5,31 @@
 > first. Earlier per-round build decisions live in
 > [archive/build-history.md](archive/build-history.md).
 
+## 2026-07-28 — Public name "Muse Archive"; a one-time landing intro (Memo + Claude)
+
+Two front-of-house touches, layer-4 only. Memo: the record-page back control said "Observatory"
+(dev/repo name leaking to visitors), and the globe dropped a first-time visitor straight onto the
+sphere with no "what is this / how does it work".
+
+- **UX-1 · Public name is "Muse Archive"; "Observatory" is the repo/dev name only.** The record-page
+  back pill now reads **"← Archive"**; `index.html` `<title>`/`og:title`/meta and the list `<h1>`
+  say "Muse Archive"; the CSS comment headers inlined into record pages (`tokens.css`, `record.css`)
+  were renamed so no shipped HTML shows "Observatory". *Why:* Memo — visitors shouldn't see the
+  internal tool name; "Archive" is what the thing *is* to a reader. *Apply:* `record-template.mjs`
+  (title + back-link label), `index.html`, `tokens.css`/`record.css` header comments. The repo,
+  module dir (`src/observatory/`), and docs framing keep "Observatory" as the dev name.
+
+- **UX-2 · One-time landing intro for globe visitors (Explore → globe).** A `hidden`-by-default
+  `#observatory-landing` overlay (wordmark · "The Muse Archive" · beam · one-line lede · three
+  how-it-works steps · **Explore**) reveals only to globe-capable visitors — `showLanding()` runs in
+  `maybeInitGlobe()` *after* the `prefersReduced || !canWebGL2` return, so list-only visitors skip it
+  (A-4: the list is self-explanatory). Explore dismisses it (`.is-dismissed`, `transitionend` + 700 ms
+  fallback, Escape too); the globe's scroll-lock is made conditional on the landing being hidden so the
+  intro owns the viewport until Explore. *Why:* Memo — a first-time visitor needs a short "what is this
+  + how it works" before the bare globe; reuses the existing text/box + beam idiom, no new surface style.
+  *Apply:* `index.html` (`#observatory-landing`), `observatory.css` (`.landing*` + ported `beam-glow`),
+  `observatory.js` (`showLanding()`, conditional scroll-lock).
+
 ## 2026-07-28 — Auto web-image variants; ship sized, keep originals (Memo + Claude)
 
 Record pages were the site's weight: they referenced the full-res originals (raw ~4000px exports,

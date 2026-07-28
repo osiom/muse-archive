@@ -1,4 +1,4 @@
-# CLAUDE.md — Muse Observatory
+# CLAUDE.md — Muse Archive
 
 cocoex's public **campaign archive**: markdown campaigns → a JSON index + static record
 pages, presented through a WebGL globe (the "wow" view) and a grid/list (find/scan).

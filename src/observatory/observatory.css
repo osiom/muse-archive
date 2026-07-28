@@ -1065,3 +1065,157 @@ body.flip-open #observatory-halo { opacity: 0.22; }
   .filter-panel { scale: 1; }
   .filter-panel.is-open .filter-chip { animation: none; }
 }
+
+/* ── Landing intro (globe visitors only) ───────────────────────────────────────────────
+   A short "what is this + how it works" gate over the cosmic backdrop; the Explore button
+   dismisses it and reveals the globe. Shown by observatory.js only when the globe is the
+   experience (never in list-only / reduced-motion). Same Canela + muse-beam idiom as the
+   list header. Sits above every backdrop + control layer but below nothing. */
+.landing {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 6vh, 64px) clamp(20px, 6vw, 48px);
+  overflow-y: auto;
+  background: var(--color-black, #000);
+  opacity: 1;
+  transition: opacity 0.5s var(--ease-out);
+}
+/* dismiss: fade out, then observatory.js sets [hidden] on transitionend. */
+.landing.is-dismissed { opacity: 0; pointer-events: none; }
+
+.landing-inner {
+  max-width: 640px;
+  margin: auto;
+  text-align: center;
+}
+.landing-mark {
+  display: block;
+  width: clamp(96px, 18vw, 150px);
+  height: auto;
+  margin: 0 auto clamp(24px, 5vh, 44px);
+  opacity: 0.85;
+}
+.landing-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(32px, 6vw, 60px);
+  line-height: 0.98;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+/* reuse .archive-beam (the animated muse-rainbow rule under the list title). */
+.landing-beam { margin-top: clamp(18px, 3vw, 26px); }
+
+.landing-lead {
+  margin: clamp(22px, 4vw, 34px) auto clamp(30px, 5vw, 44px);
+  max-width: 34em;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(17px, 1.9vw, 22px);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.landing-lead em { font-style: italic; color: rgba(255, 255, 255, 0.9); }
+
+.landing-steps {
+  list-style: none;
+  margin: 0 auto clamp(32px, 6vw, 52px);
+  padding: 0;
+  max-width: 30em;
+  text-align: left;
+  display: grid;
+  gap: clamp(14px, 2.4vw, 20px);
+}
+.landing-step {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(12px, 2vw, 18px);
+  color: rgba(255, 255, 255, 0.66);
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.45;
+}
+.landing-step-num {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+.landing-step-text strong { color: rgba(255, 255, 255, 0.92); font-weight: 700; }
+
+.landing-explore {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 44px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50px;
+  background: transparent;
+  color: var(--color-white, #fff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.3s var(--ease-out), background 0.3s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .landing-explore:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.06); }
+}
+.landing-explore:active { transform: translateY(0) scale(0.98); }
+.landing-explore:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+
+/* ── beam machinery (ported from record.css / cocoex base.css) ──────────────────────────
+   The Explore button's spinning muse-spectrum rim. Self-contained here so the index page
+   doesn't depend on the record stylesheet. */
+@property --beam-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes beam-spin { to { --beam-angle: 360deg; } }
+.beam-glow { position: relative; isolation: isolate; }
+.beam-glow::before,
+.beam-glow::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from var(--beam-angle),
+    rgba(213, 77, 46, 0) 0deg,
+    #D54D2E 40deg, #D48348 60deg, #F8D86A 80deg,
+    #8CB07F 100deg, #5783A6 120deg, #5E47A1 140deg,
+    rgba(127, 73, 162, 0) 170deg,
+    transparent 360deg);
+  animation: beam-spin 5s linear infinite;
+}
+.beam-glow::before {
+  padding: 2px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  z-index: 1;
+}
+.beam-glow::after {
+  padding: 5px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  filter: blur(7px);
+  opacity: 0.55;
+  z-index: -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing { transition: none; }
+  .landing-explore { transition: none; }
+  .landing-beam { animation: none; }
+  .beam-glow::before, .beam-glow::after { animation: none; }
+}

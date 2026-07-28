@@ -1,6 +1,6 @@
-# Muse Observatory — Documentation
+# Muse Archive — Documentation
 
-The Muse Observatory is cocoex's **campaign archive**: a public site where every
+The Muse Archive is cocoex's **campaign archive**: a public site where every
 Stardust (artist-led) and Horizon (community-led) campaign lives as a long-form record.
 The landing page is a WebGL globe; each record is a static, shareable article.
 

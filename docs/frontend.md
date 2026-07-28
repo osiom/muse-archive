@@ -8,10 +8,10 @@
 
 ## Scope
 
-The frontend is everything the browser runs: the WebGL globe (the "wow" view), the
-grid/list (the find/scan peer), and the generated static record pages. It consumes one
-payload — `campaigns.json` — and nothing else. No framework, no router, no server calls
-beyond that one fetch.
+The frontend is everything the browser runs: a one-time **landing intro** (globe visitors
+only), the WebGL globe (the "wow" view), the grid/list (the find/scan peer), and the
+generated static record pages. It consumes one payload — `campaigns.json` — and nothing
+else. No framework, no router, no server calls beyond that one fetch.
 
 ```
 campaigns.json ──fetch──► observatory.js (orchestrator)
@@ -28,6 +28,21 @@ campaigns.json ──fetch──► observatory.js (orchestrator)
 | Vite | `vite.config.js` + `vite-plugin-observatory.mjs` | **Good fit.** Markdown pipeline runs as a build script invoked by the plugin's `closeBundle()`; dev serves generated JSON/HTML via middleware. Markdown never enters the client bundle. |
 | `gl-matrix` (only client dep) | globe math | **Justified.** Tiny, math-only. Scratch objects reused per-frame to avoid GC stutter (`globe.js` animate loop). |
 | WebGL2 + custom shaders | `globe*.js`, `tile-atlas.js` | **The structural risk.** Ported from reactbits InfiniteMenu; carries the 42-vertex ceiling (below) and a long device-fight history (frozen per G-D). |
+
+## The landing intro (globe visitors only)
+
+`#observatory-landing` (`.landing`, `hidden` by default in `index.html`) is a one-time
+overlay — cocoex wordmark · "The Muse Archive" · beam · a one-line lede · three
+how-it-works steps (Explore the globe / Follow the seven muses / Read the impact) · an
+**Explore** button — in the same cosmic-black + Canela + muse-beam idiom as the rest of the
+page. `showLanding()` (`observatory.js`) reveals it and wires Explore → dismiss (adds
+`.is-dismissed`, re-hides on `transitionend` + a 700 ms fallback; Escape also dismisses).
+
+It is shown **only to globe visitors**: `showLanding()` is called in `maybeInitGlobe()`
+*after* the `prefersReduced || !canWebGL2` guard returns, so reduced-motion / no-WebGL2
+list-only visitors never see it (the list is self-explanatory — A-4). The globe boot's
+scroll-lock is made conditional on the landing being hidden, so the intro owns the viewport
+until Explore. `hidden` by default keeps no-JS + list-only paths from flashing it.
 
 ## How the globe actually works
 
@@ -148,7 +163,8 @@ the experience and the rail is naturally absent (`maybeInitGlobe`).
    **two-column editorial** (header: muse crest · eyebrow band · big uppercase title · muse rule;
    then a centred lede; then facts beside numbered process steps), a **full-bleed hero band** with
    per-campaign `heroFocus` crop + scroll parallax, the swipeable photo slideshow, and the cocoex
-   footer (V-9/V-10b; small inlined scripts drive the slideshow + parallax). Clicking "Explore" is a
+   footer (V-9/V-10b; small inlined scripts drive the slideshow + parallax). Its top-left back
+   control reads **"← Archive"** (the beam pill), matching the public name. Clicking "Explore" is a
    real navigation, and returning re-boots the page (**fresh** random sample now — G-G, globe reset,
    list re-render). Acceptable for now (no SPA router by design), but worth noting.
 

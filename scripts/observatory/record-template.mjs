@@ -297,7 +297,7 @@ ${multi ? '<div class="gallery-dots" role="tablist" aria-label="Choose image"></
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${esc(meta.title || meta.slug)} — cocoex Observatory</title>
+<title>${esc(meta.title || meta.slug)} — cocoex Archive</title>
 <meta name="description" content="${esc(desc)}">
 <meta name="robots" content="${draft ? 'noindex' : 'index, follow'}">
 <link rel="icon" href="${base}assets/images/logowhite.png" type="image/png">
@@ -307,7 +307,7 @@ ${multi ? '<div class="gallery-dots" role="tablist" aria-label="Choose image"></
 </head>
 <body class="observatory-record" style="--accent:${accent}">
 ${draftBanner}
-<a class="record-back beam-glow" href="${base}">← Observatory</a>
+<a class="record-back beam-glow" href="${base}">← Archive</a>
 <article class="record">
 <header class="record-header">
 ${museGlyph}
