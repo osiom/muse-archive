@@ -5,3 +5,5 @@ dist/
 
 # generated globe-tile thumbnails (regenerated at dev start / build by vite-plugin-observatory)
 public/assets/images/*/thumb/
+# generated web-sized image variants (same — regenerated from the originals on demand)
+public/assets/images/*/web/

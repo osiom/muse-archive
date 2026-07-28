@@ -54,16 +54,19 @@ globeExclude: []                   # OPTIONAL — bare filenames kept in the gal
 > Vite serves `public/` at the domain root, so they're referenced at runtime as root-absolute
 > `/assets/images/<slug>/<file>`. `hero` and `images` entries are **bare filenames**, resolved
 > into that folder by the build — the author never writes a path. A `hero` missing from that
-> folder warns (never fails). Drop **web-sized** images here; raw originals stay out of the repo
-> (downscaling web copies of the *originals* is still the manual `sips` pass — the deferred part
-> of P2.1).
+> folder warns (never fails). **Drop the originals here at any size** — the build sizes them (see
+> below); no manual downscaling. The committed originals are archival; they are **not shipped** —
+> the production build strips them from `dist/` wherever a web variant exists.
 >
-> **Globe thumbnails (auto, `sharp`).** The globe draws each photo into a tiny circle, so the build
-> generates a **512px WebP** next to each one — `assets/images/<slug>/thumb/<name>.webp` — and the
-> globe loads *that* (record pages keep the full-res original). Generated automatically at dev start
-> and on build (`vite-plugin-observatory.mjs` `buildStart` → `scripts/observatory/thumbs.mjs`),
-> **cached**, **gitignored** (regenerated, never committed), and non-fatal (a missing thumb → a plain
-> muse-colour disc). Authors do nothing — just drop the photos. (Decision G-F/P2.1.)
+> **Web variants (auto, `sharp`).** Record pages don't load the multi-MB originals — the build
+> generates a **web-sized WebP** next to each hero/gallery photo (`assets/images/<slug>/web/<name>.webp`,
+> long edge **≤1600px**, quality ~80) and the record template references *those*. **Globe thumbnails**
+> are the same idea at circle scale: a **512px WebP** (`assets/images/<slug>/thumb/<name>.webp`) the
+> globe loads instead of the full photo. Both are generated automatically at dev start and on build
+> (`vite-plugin-observatory.mjs` `buildStart` → `scripts/observatory/{variants,thumbs}.mjs`),
+> **cached** (skip if newer than source), **gitignored** (regenerated, never committed), and
+> non-fatal (a missing thumb → a plain muse-colour disc; a missing variant → the original). Authors
+> do nothing — just drop the photos. (Decisions G-F / P2.1.)
 >
 > **`heroFocus`** (optional) sets the record **banner** crop via CSS `object-position` (default
 > `center 30%`, so heads survive). Find a value live by opening the page with **`#place`** and
@@ -76,8 +79,9 @@ globeExclude: []                   # OPTIONAL — bare filenames kept in the gal
 > footage: `00-hero.*` = the cover, `1.jpg`, `2.jpg`, … = the slides in order. The `hero` is a
 > separate banner and is **not** repeated in the slideshow (it's not in `images[]`).
 >
-> **Web copies** are downscaled with `sips` to **≤2400px** long edge, JPG quality ~85
-> (HEIC/PNG → JPG), imported from the cocoex-website `comet-collabs/campaign-footage/` originals.
+> **Originals** are imported from the cocoex-website `comet-collabs/campaign-footage/` sources
+> (drone/phone, HEIC/PNG → JPG). They're committed as-is; the build derives the shipped web
+> variants and globe thumbnails from them (see "Web variants" above) — no manual `sips` pass.
 
 > **`location` is a list of free strings (one per place).** A single-place campaign is a
 > one-item list; a multi-place event (e.g. HORIZON002 across Berlin · Krefeld · Salzburg ·

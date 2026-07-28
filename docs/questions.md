@@ -35,11 +35,10 @@ see the 2026-06-23 section in [decisions.md](decisions.md). What's still open:
 
 ## Known follow-ups (not blocking)
 
-- **Q · Automate image downscaling (`sharp`) — for the *web copies*.** *Partly resolved (G-F/P2.1):*
-  `sharp` is now a build-time devDep and auto-generates the **512px globe-tile thumbnails**
-  (`thumbs.mjs`). What's *still* manual is downscaling the full-res footage **originals** into the
-  ≤2400px web copies dropped in `public/assets/images/<slug>/` (still the `sips` pass; authors could
-  ship full-res by hand). A `sharp` prepare-step could enforce that too. Nice-to-have.
+- **Q · Automate image downscaling (`sharp`).** *Resolved — see P2.1 (globe thumbs, 512px) + P2.2
+  (record-page web variants, ≤1600px WebP) in [decisions.md](decisions.md).* Authors now drop
+  originals at any size; the build derives both the shipped variants and the globe tiles, and strips
+  the originals from `dist/`. No manual `sips` pass remains.
 
 - **Q · `createProgram` hardening.** `globe.js:32` skips the attach on a failed shader
   compile, then relies on `linkProgram` to fail — returns `null` correctly but double-logs.

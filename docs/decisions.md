@@ -5,6 +5,29 @@
 > first. Earlier per-round build decisions live in
 > [archive/build-history.md](archive/build-history.md).
 
+## 2026-07-28 — Auto web-image variants; ship sized, keep originals (Memo + Claude)
+
+Record pages were the site's weight: they referenced the full-res originals (raw ~4000px exports,
+1–2 MB each), so one gallery (horizon001 = 18 photos + hero) pulled ~23 MB. The globe was already
+light (512px thumbs, P2.1); this finishes the same idea for the record pages and completes the
+`sharp`-downscaling that D-4 had left as a manual `sips` pass.
+
+- **P2.2 · Auto web-sized WebP variants; ship the variants, keep originals unshipped.** A build step
+  generates a **web-sized WebP** next to each hero/gallery photo (`<slug>/web/<name>.webp`, long edge
+  **≤1600px**, quality ~80); the record template references those instead of the originals. On the
+  production build the originals are **stripped from `dist/`** wherever a variant exists (muse glyphs /
+  logos / `cocoex-text.png` are never in the index, so they're untouched). Measured: horizon001's
+  image payload **~23 MB → ~4.5 MB (~81% lighter)**; `dist/` image dir ~9 MB variants + ~1.6 MB thumbs.
+  *Why:* Memo — "the website is too heavy". WebP (not WebM — that's video) at ~q80/1600px is
+  visually identical for this use at ~1/5 the bytes; keeping originals in git preserves the archival
+  source while the deploy stays lean. *Apply:* `scripts/observatory/variants.mjs` (mirrors
+  `thumbs.mjs` — cached by mtime, non-fatal), wired in `vite-plugin-observatory.mjs` `buildStart`
+  (auto on dev start + build) with the `dist/` strip in `closeBundle`; `record-template.mjs` `web()`
+  helper points hero + gallery at the variant; `web/` gitignored like `thumb/`. No manual step, no
+  slash command — the build hook *is* the automation. *Completes:* P2.1's deferred half. *Amends:*
+  **D-4** (originals now committed-but-not-shipped, not "not committed"; downscaling now automated,
+  not a manual `sips` pass).
+
 ## 2026-06-28 — Dormant-muse CTA discs on the globe (Memo + Claude)
 
 Turning the globe's dead decoration into a call to action. cocoex has 7 muses = 7 causes, but only
@@ -149,8 +172,7 @@ layer-4 (G-D holds — none of these reopen device-polish; the globe ones are se
   *Why:* Memo — circles took long to load. `sharp` is now a **build-time devDep** (never in the
   client bundle, verified). *Apply:* `scripts/observatory/thumbs.mjs`, `vite-plugin-observatory.mjs`
   (`buildStart`), `observatory.js` (`thumbUrl` swap in `buildItems`). *Advances:* the deferred
-  `sharp` downscaling (D-4 / questions.md) — for the globe; original web-copy downscaling stays the
-  manual `sips` pass.
+  `sharp` downscaling (D-4 / questions.md) — for the globe; the record-page half followed in P2.2.
 
 - **Bugfix · record template reads the *derived* type/number.** `renderRecordPage` read
   `meta.type`/`meta.number` (never in frontmatter — they're filename-derived per D-1), so **every**
@@ -318,7 +340,8 @@ are settled.
   "Explore" + every leaf resolve to the campaign `url`. Record page: `.record-hero` (the `hero`) +
   `.record-gallery` (the `images`) in `record-template.mjs` / `record.css` — both redesigned
   (cropped hero + slideshow + footer) in V-7. Photos are
-  downscaled web copies (D-4, sips → ≤2400px JPG q85, HEIC/PNG converted) imported from the
+  downscaled web copies (D-4 as it stood then: sips → ≤2400px JPG q85, HEIC/PNG converted — now
+  superseded by the auto `web/*.webp` variants of P2.2) imported from the
   cocoex-website `comet-collabs/campaign-footage/`. The slideshow + leaves show `images[]` in
   **filename order** (numeric-aware, `build.mjs`), so the footage convention `00-hero` + `1, 2 … N`
   sets the cover and the order — renaming files reorders the slideshow, no frontmatter edit (Memo).
@@ -470,18 +493,18 @@ Making the content pipeline rock-solid for CRUD before any selection/view work.
   site isn't live yet, so there are no inbound links to preserve. Add redirects only if we
   ever rename a *published* slug.
 
-- **D-4 · Assets live in `public/assets/images/<slug>/`; footage originals stay out.**
-  Web-sized images served at `/assets/images/<slug>/<file>`; `hero` is a bare filename
-  resolved there. Full-res originals are **not** committed or shipped.
+- **D-4 · Assets live in `public/assets/images/<slug>/`; originals committed, not shipped.**
+  Images served at `/assets/images/<slug>/<file>`; `hero` is a bare filename resolved there. The
+  full-res originals **are** committed (archival) but are **not shipped** — the build strips them
+  from `dist/` wherever a generated web variant exists. *(Amended by P2.2, 2026-07-28 — see below;
+  originally "originals not committed or shipped, downscaled by a manual `sips` pass".)*
   *Why:* the slug already names the campaign — making it the folder name removes the only
   remaining path-sync footgun, and `public/` is what Vite serves at root. The original full-res
   footage (drone/phone, HEIC, ~50 MB/campaign) was the live publish blocker (OBS-1/2/3); shipping
-  downscaled web images keeps `dist/` small.
-  *Apply:* the four published campaigns now carry web copies — `sips`-downscaled to **≤2400px**
-  long edge, JPG q85 (HEIC/PNG → JPG), ~0.5–1.3 MB each, slideshows lazy-loaded — imported from
-  the cocoex-website `comet-collabs/campaign-footage/` originals, which stay out of the repo. Build
-  resolves + existence-checks under `public/assets/images/<slug>/`. Automated downscaling (`sharp`)
-  is still the deferred P2.1 step; today it's the manual `sips` pass.
+  only the sized variants keeps `dist/` small.
+  *Apply:* authors drop originals at any size into `public/assets/images/<slug>/`; the build
+  derives shipped `web/*.webp` variants + `thumb/*.webp` globe tiles (P2.2). Build resolves +
+  existence-checks the originals under `public/assets/images/<slug>/`; slideshows lazy-load.
 
 - **D-5 · `location` is a list; build emits array + joined display.** Authored as a YAML
   list (one entry per place); `campaigns.json` carries `locations: [...]` and a `" · "`

@@ -80,9 +80,11 @@ mkdir -p public/assets/images/<slug> && touch public/assets/images/<slug>/.gitke
 ```
 
 The folder lives under `public/` (Vite serves it at the domain root, so heroes resolve to
-`/assets/images/<slug>/<file>` — decision D-4). Tell the author to drop **web-sized** images
-there, named to match `hero` / `images[]`, and to downscale before committing (raw originals
-stay out of the repo).
+`/assets/images/<slug>/<file>` — decision D-4). Tell the author to drop images there named to
+match `hero` / `images[]`. **Size is handled for them:** the build auto-generates web-sized WebP
+variants (`web/<name>.webp`, long edge ≤1600px) and the globe thumbnails (`thumb/…`) from whatever
+they commit — so a full-resolution export is fine; no manual downscaling needed. The record pages
+reference the web variants; the committed originals are archival and stripped from the shipped `dist/`.
 
 ### 6. Verify + report
 Run the build to confirm the new file parses and validates:

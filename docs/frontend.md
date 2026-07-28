@@ -79,7 +79,9 @@ The selection layer now caps the globe's input at ≤ 42 (`CAMPAIGN_CAP`), so N 
 and the atlas can't outgrow common GPU `MAX_TEXTURE_SIZE` limits. **The old "feed it the
 whole list" risk is closed** — the globe only ever sees a bounded subset. Each cell's photo is
 the build-generated **512px WebP thumbnail** (`<slug>/thumb/<name>.webp`, decision P2.1/G-F), not
-the full-res original, so the atlas loads in ~1.5 MB instead of ~40 MB; record pages keep full-res.
+the full-res original, so the atlas loads in ~1.5 MB instead of ~40 MB. Record pages load a larger
+**web-sized WebP variant** (`<slug>/web/<name>.webp`, ≤1600px, decision P2.2) — never the originals,
+which are stripped from the shipped `dist/`.
 
 ## The selection layer (layer 3) — built + tested
 

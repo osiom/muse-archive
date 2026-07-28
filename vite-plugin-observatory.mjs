@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateObservatory } from './scripts/observatory/build.mjs';
 import { generateThumbs } from './scripts/observatory/thumbs.mjs';
+import { generateWebVariants } from './scripts/observatory/variants.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CONTENT_DIR = path.join(HERE, 'content/campaigns');
@@ -32,10 +33,13 @@ export default function observatory() {
     async buildStart() {
       try {
         const out = await generateObservatory({ includeDrafts: true, base });
-        const made = await generateThumbs(JSON.parse(out.campaignsJson), PUBLIC_DIR);
-        if (made) console.log(`[observatory] generated ${made} globe thumbnail(s)`);
+        const idx = JSON.parse(out.campaignsJson);
+        const thumbs = await generateThumbs(idx, PUBLIC_DIR);
+        if (thumbs) console.log(`[observatory] generated ${thumbs} globe thumbnail(s)`);
+        const variants = await generateWebVariants(idx, PUBLIC_DIR);
+        if (variants) console.log(`[observatory] generated ${variants} web image variant(s)`);
       } catch (err) {
-        console.warn('[observatory] thumbnail generation skipped:', err.message);
+        console.warn('[observatory] image generation skipped:', err.message);
       }
     },
 
@@ -109,6 +113,27 @@ export default function observatory() {
         `\n[observatory] ${total} campaigns → ${pages} page(s) written, ` +
           `${drafts} draft(s) held back, ${tileOnly} tile-only.`,
       );
+
+      // Strip shipped originals: Vite copies public/ wholesale into dist/, but the record pages now
+      // reference the web/*.webp variants — so the multi-MB originals just bloat the deploy. Delete
+      // each original from dist/ WHERE its web variant exists (keep it otherwise, so a missing
+      // variant still ships a working image). Only touches photos in the index — muse glyphs, logos
+      // and cocoex-text.png are never listed, so they're untouched. Originals stay in public/ + git.
+      let stripped = 0;
+      for (const c of JSON.parse(out.campaignsJson)) {
+        const photos = [c.hero, ...(Array.isArray(c.images) ? c.images : [])].filter(Boolean);
+        for (const rel of photos) {
+          const distOrig = path.join(outDir, rel.replace(/^\//, ''));
+          const name = path.basename(distOrig).replace(/\.[^.]+$/, '');
+          const distVariant = path.join(path.dirname(distOrig), 'web', `${name}.webp`);
+          try {
+            await fs.access(distVariant);        // variant shipped → original is redundant
+            await fs.rm(distOrig, { force: true });
+            stripped++;
+          } catch { /* no variant → keep the original so the page still renders */ }
+        }
+      }
+      if (stripped) console.log(`[observatory] stripped ${stripped} shipped original(s) superseded by web variants.`);
     },
   };
 }
