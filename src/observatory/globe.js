@@ -92,6 +92,15 @@ export class Globe {
   #rafId = 0;
   running = false;
 
+  // Idle detection (settle-timer): the loop keeps rendering while the scene MOVES and for a short
+  // grace window after, then STOPS rescheduling rAF — a still sphere is pixel-identical every
+  // frame, so animating it is wasted main-thread + GPU + battery. Any input/state change calls
+  // #wake() to re-arm. The grace window covers the snap-to-tile + camera-dolly ease-out tail so
+  // the loop never stops mid-settle (that tail decays well under a few hundred ms).
+  #lastMotionTime = 0;
+  #idle = false;
+  IDLE_GRACE_MS = 450;   // keep rendering this long after the last detected motion, then idle
+
   camera = {
     matrix: mat4.create(),
     near: 0.1,
@@ -308,7 +317,9 @@ export class Globe {
     this.activeIndex = -1;
     this.#computeInstanceScales(); // muse/campaign sizes for the new set
     this.#computeInstanceColors(); // procedural-disc accent colours for the new set
+    this.#wake();                  // repaint the swapped set (also re-arms if idle)
     await this.loadAtlas();
+    this.#wake();                  // the async atlas upload lands later → repaint with textures
   }
 
   // ── public: zoom (the draggable pill slider drives this) ──────────────────────
@@ -316,6 +327,7 @@ export class Globe {
   // toward 3 * scaleFactor, so the change eases in for free.
   setScale(s) {
     this.scaleFactor = Math.max(0.6, s);
+    this.#wake();   // the camera dollies toward the new target over several frames
   }
 
   async loadAtlas() {
@@ -378,10 +390,19 @@ export class Globe {
     if (this.running) return;
     this.running = true;
     this.#time = performance.now();
+    this.#lastMotionTime = this.#time;
+    this.#idle = false;
     this.#rafId = requestAnimationFrame((t) => this.#frame(t));
     if (!this._onVis) {
-      this._onVis = () => { if (!document.hidden && this.running) { this.#time = performance.now(); } };
+      // Returning to a visible tab must repaint (and re-arm if we idled while hidden).
+      this._onVis = () => { if (!document.hidden && this.running) this.#wake(); };
       document.addEventListener('visibilitychange', this._onVis);
+    }
+    if (!this._onWakeDown) {
+      // A drag can start from a fully idle loop — the canvas still gets the pointerdown, so wake
+      // there. Passive: we only re-arm the loop; ArcballControl's own listener does the rotate.
+      this._onWakeDown = () => this.#wake();
+      this.canvas.addEventListener('pointerdown', this._onWakeDown, { passive: true });
     }
   }
 
@@ -393,19 +414,56 @@ export class Globe {
       // _frozen (during a flip): hold the globe perfectly still so the focused tile stays
       // exactly under the flip card → open + close anchor to the SAME spot, no jump. The
       // globe is opacity:0 then anyway, so we skip animate+render but keep onFrame
-      // (starfield/cloud/halo still breathe behind the card).
+      // (starfield/cloud/halo still breathe behind the card). A frozen globe never idles —
+      // the backdrop is still animating via onFrame — so we bump the motion clock too.
       if (!this._frozen) {
         this.#animate(this.#deltaTime);
         this.#render();
+        // P1: the halo math (onFrame → getSphereScreenRadius) only needs to run on frames we
+        // actually rendered — when the loop idles, it stops with the rest.
+        this.onFrame?.(time);
+      } else {
+        this.#lastMotionTime = time;   // flip is up: stay awake for the backdrop
+        this.onFrame?.(time);
       }
-      this.onFrame?.(time);
+
+      // Motion sources that keep the loop alive: an active drag, non-trivial rotation velocity
+      // (coast + snap pull), or a camera dolly still converging on its zoom target.
+      const dollySettling = Math.abs(this.camera.position[2] - 3 * this.scaleFactor) > 0.001;
+      if (this._frozen || this.control?.isPointerDown ||
+          Math.abs(this.smoothRotationVelocity) > 0.0008 || dollySettling) {
+        this.#lastMotionTime = time;
+      }
+
+      // Idle once the grace window since the last motion has fully elapsed: stop rescheduling.
+      if (time - this.#lastMotionTime > this.IDLE_GRACE_MS) {
+        this.#idle = true;
+        this.#rafId = 0;
+        return;   // loop parks here until #wake() re-arms it
+      }
     }
     this.#rafId = requestAnimationFrame((t) => this.#frame(t));
   }
 
+  // Re-arm the render loop after it has idled (or refresh the motion clock while running). Called
+  // from every seam that can change the scene: pointerdown, zoom (setScale), setItems, resize,
+  // focusItem, thaw, and returning to a visible tab. Idempotent + cheap — safe to over-call.
+  #wake() {
+    this.#lastMotionTime = performance.now();
+    if (!this.running || document.hidden) return;
+    if (this.#idle || !this.#rafId) {
+      this.#idle = false;
+      this.#time = performance.now();   // avoid a large dt jump on the first frame back
+      this.#rafId = requestAnimationFrame((t) => this.#frame(t));
+    }
+  }
+  // Public wake — the orchestrator's gesture/pinch code can nudge the loop awake without reaching
+  // into privates (the built-in seams below cover the common paths; this is the escape hatch).
+  wake() { this.#wake(); }
+
   // freeze/thaw the globe animation (the flip uses this so the tile can't drift away).
-  freeze() { this._frozen = true; }
-  thaw() { this._frozen = false; this.#time = performance.now(); } // reset to avoid a dt jump
+  freeze() { this._frozen = true; this.#wake(); }   // keep the loop alive so the backdrop breathes
+  thaw() { this._frozen = false; this.#time = performance.now(); this.#wake(); } // reset dt + resume
 
   // ── round 6 #2 probe hooks: sweep the foreground (symbol) sampling on the LIVE globe ──
   setForegroundBias(b) { this.fgBias = b; }
@@ -426,6 +484,7 @@ export class Globe {
     this.running = false;
     cancelAnimationFrame(this.#rafId);
     if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
+    if (this._onWakeDown) this.canvas.removeEventListener('pointerdown', this._onWakeDown);
     this.control?.dispose();
     // Release the GL resources we created (textures/buffers/program/VAO) so a disposed
     // globe doesn't leak GPU memory. Window/document listener teardown is deliberately
@@ -447,6 +506,7 @@ export class Globe {
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     }
     this.#updateProjectionMatrix();
+    this.#wake();   // the viewport/projection changed → repaint (and re-arm if idle)
   }
 
   #animate(deltaTime) {
@@ -684,6 +744,7 @@ export class Globe {
     this.activeVertexIndex = vi;
     this.activeIndex = vi % len;
     this.onActiveItemChange(this.items[vi % len], vi % len);
+    this.#wake();   // orientation jumped → repaint the newly-centred tile
     return true;
   }
 }
