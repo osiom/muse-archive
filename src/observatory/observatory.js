@@ -14,7 +14,7 @@ import './observatory.css';
 import { Globe } from './globe.js';
 import { createStarfield } from '../webgl/starfield.js';
 import { createIntroStarfield } from '../webgl/intro-starfield.js';
-import { CAMPAIGN_CAP, makeSeed, sample, filterCampaigns, applySparseGuard, expandToLeaves } from './selection.js';
+import { CAMPAIGN_CAP, makeSeed, sample, filterCampaigns, expandToLeaves } from './selection.js';
 import { MUSES } from '../data.js';
 
 // BASE_URL is '/' in dev and '/museobservatory/' on the GitHub Pages subpath build (always
@@ -871,10 +871,8 @@ function initFilters(globe, allCampaigns) {
     countEl.textContent = active ? `${matched.length} match${matched.length === 1 ? '' : 'es'}` : '';
     clearBtn.hidden = !active;
     wrap.classList.toggle('is-open', isOpen());
-    // A-4: too few matches makes the globe repeat tiles + look broken — force the list
-    // (the agreed fallback is show-the-list, not pad the globe). We never forcibly switch
-    // BACK when matches are plentiful, so the user's chosen view is respected otherwise.
-    if (active && applySparseGuard(matched).sparse) setListView(true, globe);
+    // Filtering never changes the view — the globe is the archive to explore, so a filter
+    // stays on the globe (even at 1–2 matches). Switching to the list is left to the toggle.
   };
 
   panel.addEventListener('click', (e) => {
