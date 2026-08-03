@@ -1,0 +1,4 @@
+#!/bin/sh
+# Reject staged image originals over the repo-weight cap. Enable once with:
+#   git config core.hooksPath scripts/hooks
+node scripts/check-image-sizes.mjs

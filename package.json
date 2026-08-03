@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "shrink:images": "node scripts/shrink-originals.mjs",
+    "check:images": "node scripts/check-image-sizes.mjs --all"
   },
   "dependencies": {
     "gl-matrix": "^3.4.4"
