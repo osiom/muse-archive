@@ -91,16 +91,22 @@ mkdir -p public/assets/images/<slug> && touch public/assets/images/<slug>/.gitke
 
 The folder lives under `public/` (Vite serves it at the domain root, so heroes resolve to
 `/assets/images/<slug>/<file>` — decision D-4). Tell the author to drop images there named to
-match `hero` / `images[]`. **Size is handled for them:** the build auto-generates web-sized WebP
-variants (`web/<name>.webp`, long edge ≤1600px) and the globe thumbnails (`thumb/…`) from whatever
-they commit — so a full-resolution export is fine; no manual downscaling needed. The record pages
-reference the web variants; the committed originals are archival and stripped from the shipped `dist/`.
+match `hero` / `images[]`. The build (in CI, on push) auto-generates the web-sized variants
+(`web/<name>.avif` + `.webp`, long edge ≤1600px) and globe thumbnails (`thumb/…`); the record
+pages reference those, and the committed originals are stripped from the shipped `dist/`.
 
-**Format matters, though — commit `.jpg` (lowercase).** This repo's `sharp` build **cannot decode
+**Shrink the originals before committing — `npm run shrink:images`.** Committed originals are
+capped at **2048px / JPEG q85** so the git repo stays thin (they're only build input; the site
+serves the smaller `web/` variants either way). A pre-commit guardrail
+(`scripts/check-image-sizes.mjs`) **rejects any original over the cap**, so a raw 4000px camera
+export won't commit — run `npm run shrink:images` (idempotent) after dropping photos, then stage.
+Tell the author to run it; don't downscale by hand.
+
+**Format matters too — commit `.jpg` (lowercase).** This repo's `sharp` build **cannot decode
 HEIC**, so a `.HEIC` (or `.png`) original produces **no** web/thumb variant and the photo silently
 fails to render. Convert first — on macOS: `sips -s format jpeg in.HEIC --out out.jpg` — and use
-**lowercase** extensions (`.jpg`, not `.JPG`) to match the `images[]` list. Any resolution is fine;
-just get it to JPG before wiring it into frontmatter.
+**lowercase** extensions (`.jpg`, not `.JPG`) to match the `images[]` list. Any source resolution
+is fine (shrink handles the cap); just get it to JPG before wiring it into frontmatter.
 
 ### 6. Verify + report
 Run the build to confirm the new file parses and validates:

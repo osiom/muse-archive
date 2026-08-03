@@ -74,7 +74,10 @@ Constrain choices where the schema does:
   entries must also appear in `images`. Files must be **`.jpg`, lowercase** — this repo's `sharp`
   can't decode HEIC, so a `.HEIC`/`.png` (or uppercase `.JPG`) yields no web/thumb variant and the
   photo silently fails. If the author dropped HEIC, convert first (`sips -s format jpeg in.HEIC --out out.jpg`)
-  and lowercase the extension before adding it to the list.
+  and lowercase the extension before adding it to the list. **After adding any new photo, run
+  `npm run shrink:images`** — committed originals are capped at 2048px/q85 and a pre-commit guardrail
+  (`scripts/check-image-sizes.mjs`) rejects anything larger, so a raw camera export won't commit
+  until it's shrunk (the shipped site is unaffected — it serves the smaller `web/` variants).
 - **hero** — a bare filename in the campaign's folder, or blank (→ placeholder tile). Never a path.
 
 Leave anything the author doesn't touch **exactly as-is**. Never invent values; blank stays blank.
