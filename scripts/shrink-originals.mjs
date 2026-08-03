@@ -53,9 +53,13 @@ async function* walkOriginals(dir) {
   }
 }
 
+const TMP_SUFFIX = '.tmp-shrink';
+
 async function shrink({ dryRun = false } = {}) {
   let scanned = 0, changed = 0, before = 0, after = 0;
   for await (const file of walkOriginals(IMAGES_DIR)) {
+    // Sweep any temp left by an interrupted prior run before we start (never let one leak into git).
+    await fs.unlink(`${file}${TMP_SUFFIX}`).catch(() => {});
     scanned++;
     const stat = await fs.stat(file);
     const meta = await sharp(file).metadata().catch(() => null);
@@ -73,7 +77,7 @@ async function shrink({ dryRun = false } = {}) {
       continue;
     }
     // Re-encode to a temp file, then atomically replace — never leave a half-written original.
-    const tmp = `${file}.tmp-shrink`;
+    const tmp = `${file}${TMP_SUFFIX}`;
     await sharp(file)
       .rotate()  // bake EXIF orientation so downstream (.rotate() in variants) is a no-op, not a double-rotate
       .resize(CAP_EDGE, CAP_EDGE, { fit: 'inside', withoutEnlargement: true })

@@ -7,3 +7,5 @@ dist/
 public/assets/images/*/thumb/
 # generated web-sized image variants (same — regenerated from the originals on demand)
 public/assets/images/*/web/
+# transient temp from shrink-originals.mjs (atomic-replace); never commit one
+*.tmp-shrink
