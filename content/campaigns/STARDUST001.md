@@ -41,6 +41,8 @@ event:
 
 ## The work
 
+*Can art fund the cause it speaks for?*
+
 Memo — co-founder of cocoex and the artist behind this campaign — had worked with Cantine Volpi since 2021, when the winery asked him to design a limited-edition wine label. That one commission grew into an artist-led charity-bottle programme that ran four years straight and raised over €15,000 for four Italian NGOs, all before cocoex existed as a formal entity. Stardust 001 was the first cycle run under the cocoex name: two series of paintings, and a collection card that carried the work and the cause to younger collectors.
 
 ## The event

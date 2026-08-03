@@ -7,11 +7,19 @@ location:                  # list — one entry per place
   - Volpedo, Alessandria · Italy
   - Montacuto, Alessandria · Italy
 hero: 1.jpg                # cover circle → assets/images/stardust002/
-images:                    # full gallery (page) + extra globe leaves
+images:                    # full gallery (page) + extra globe leaves — order follows filename
   - 2.jpg
   - 3.jpg
   - 4.jpg
   - 5.jpg
+  - 6.jpg
+  - 7.jpg
+  - 8.jpg
+  - 9.jpg
+  - 10.jpg
+  - 11.jpg
+  - 12.jpg
+  - 13.jpg
 
 # Stardust factual block
 artist: Pulkit Gandhi · Laura Marini · Ọládayọ Thomas · Raffaello Basiglio & Greta Poggi

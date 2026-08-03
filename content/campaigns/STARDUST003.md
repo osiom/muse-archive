@@ -25,13 +25,15 @@ event:
 
 ## The work
 
-Silat Beksi — a musician born and raised in Ukraine, shaped by downtempo and ambient — releases a mini-LP for his country on the Berlin label La Luna. A painting by Memo sits alongside the record. Both are made to be sold, and both point the proceeds back home: two mediums, one cause.
+*Can a song rebuild a home?*
+
+Silat Beksi — a musician born and raised in Ukraine, shaped by downtempo and ambient — releases a mini-LP for his country on the Berlin label La Luna. Alongside the record sits a painting by Memo, co-founder of cocoex. Sound and canvas were made in parallel and shown as one gesture: two mediums answering the same question, both built to be sold, both pointing their proceeds back home.
 
 ## The event
 
 Silent Rixdorf, Berlin · 22 August 2026
 
-A listening session for the record, with live performances — the work heard and seen in one room, the audience the first to carry it forward.
+A listening session at Silent Rixdorf brings the record into the room with live performances, the painting shown beside it. The audience is the first to meet the work — and the first to carry it forward.
 
 ## The Comet
 
