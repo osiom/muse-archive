@@ -282,6 +282,12 @@ body.observatory-record {
    edge width reads as intentional rather than displaced. A clamped band height keeps it cinematic
    (not 1080px tall on a wide screen). NOTE: 50vw includes the scrollbar; the page root
    (body.observatory-record) sets overflow-x:hidden so classic scrollbars don't side-scroll. */
+/* <picture> is a layout no-op (display:contents) so its child <img> lays out as a direct child of
+   .record-hero / .gallery-slide — every img rule below keeps working unchanged. The <picture>
+   only exists to offer the AVIF <source> with a WebP <img> fallback. */
+.record-hero picture,
+.gallery-slide picture { display: contents; }
+
 .record-hero {
   position: relative;
   overflow: hidden;                  /* clip the taller, drifting image to the band */
