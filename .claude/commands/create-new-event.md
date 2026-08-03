@@ -58,6 +58,16 @@ Ask for (offer the valid options as choices where the schema constrains them):
   record page). Remind: a body with `[confirm]` markers makes it a **draft** (previewable in
   dev, never published) — that is the intended way to stage unverified facts.
 
+  **House style (match the existing events — every disc should read alike):**
+  - **Open the first body section with an italic guiding *question*** on its own line, e.g.
+    `*Can art fund the cause it speaks for?*`. This line becomes the disc / globe flip-card
+    **teaser** (the build's `summarize()` takes the first sentence), so it must stand alone and
+    end in `?`. Each event's question is distinct — don't reuse another campaign's.
+  - **Keep the canonical section order** for the type and aim for a **one-pager (~250–350 words)** —
+    tight, no overflood. Stardust: *The work · The event · The Comet · Impact* (+ optional *Images*).
+    Horizon: *The question · The Future Lab · What the community proposed · The report ·
+    What came after · Impact* (+ optional *Images*). Omit a section only if there's genuinely nothing for it.
+
 Leave any field the author doesn't have **blank** — the record page renders only what's
 present. Don't invent values.
 
@@ -85,6 +95,12 @@ match `hero` / `images[]`. **Size is handled for them:** the build auto-generate
 variants (`web/<name>.webp`, long edge ≤1600px) and the globe thumbnails (`thumb/…`) from whatever
 they commit — so a full-resolution export is fine; no manual downscaling needed. The record pages
 reference the web variants; the committed originals are archival and stripped from the shipped `dist/`.
+
+**Format matters, though — commit `.jpg` (lowercase).** This repo's `sharp` build **cannot decode
+HEIC**, so a `.HEIC` (or `.png`) original produces **no** web/thumb variant and the photo silently
+fails to render. Convert first — on macOS: `sips -s format jpeg in.HEIC --out out.jpg` — and use
+**lowercase** extensions (`.jpg`, not `.JPG`) to match the `images[]` list. Any resolution is fine;
+just get it to JPG before wiring it into frontmatter.
 
 ### 6. Verify + report
 Run the build to confirm the new file parses and validates:
