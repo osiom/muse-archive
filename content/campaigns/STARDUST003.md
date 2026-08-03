@@ -25,14 +25,18 @@ event:
 
 ## The work
 
-Silat Beksi, a musician born and raised in Ukraine and shaped by downtempo and ambient, releases a mini-LP for his country on the Berlin label La Luna. A painting sits alongside the record. Both are made to be sold to raise funds for Ukraine.
+Silat Beksi — a musician born and raised in Ukraine, shaped by downtempo and ambient — releases a mini-LP for his country on the Berlin label La Luna. A painting by Memo sits alongside the record. Both are made to be sold, and both point the proceeds back home: two mediums, one cause.
 
 ## The event
 
 Silent Rixdorf, Berlin · 22 August 2026
 
-A listening session for the record, with live performances.
+A listening session for the record, with live performances — the work heard and seen in one room, the audience the first to carry it forward.
 
 ## The Comet
 
 The record and the painting are sold to raise funds for Repair Together, a volunteer-led group helping Ukrainian communities hit by the war. Since 2022 they've run over 100 clean-up events, rebuilt more than 30 homes, and brought together more than 2,500 volunteers.
+
+## Impact
+
+Every sale goes to Repair Together, turning a record and a painting into hands on the ground in Ukraine. Figures will be recorded here once the campaign closes.

@@ -83,9 +83,12 @@ function hasRealBody(markdownBody) {
   return markdownBody.replace(/<!--[\s\S]*?-->/g, '').trim().length > 0;
 }
 
-// First real prose paragraph → a short plain-text summary for the globe flip-card
-// (capped to a clean length at a word boundary). Skips comments + headings.
-function summarize(markdownBody, maxLen = 220) {
+// First real prose paragraph → a short plain-text summary for the globe flip-card.
+// Returns the FIRST COMPLETE SENTENCE (no mid-word/mid-thought cut, no trailing "…"):
+// a self-contained teaser regardless of which disc a visitor lands on. Skips comments
+// + headings. Only if that first sentence is itself very long do we fall back to a
+// word-boundary cap with an ellipsis (rare — an unpunctuated wall of text).
+function summarize(markdownBody, maxLen = 240) {
   const stripped = markdownBody.replace(/<!--[\s\S]*?-->/g, '');
   for (const block of stripped.split(/\n\s*\n/)) {
     const t = block.trim();
@@ -96,8 +99,12 @@ function summarize(markdownBody, maxLen = 220) {
       .replace(/\s+/g, ' ')
       .trim();
     if (!plain) continue;
-    if (plain.length <= maxLen) return plain;
-    return `${plain.slice(0, maxLen).replace(/\s+\S*$/, '')}…`;
+    // First sentence: stop at the first ., ! or ? that ends it (keep the terminator).
+    const m = plain.match(/^.*?[.!?](?=\s|$)/);
+    const first = m ? m[0].trim() : plain;
+    if (first.length <= maxLen) return first;
+    // Runaway first sentence → word-boundary cap with ellipsis (graceful last resort).
+    return `${first.slice(0, maxLen).replace(/\s+\S*$/, '')}…`;
   }
   return null;
 }

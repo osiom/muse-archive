@@ -41,16 +41,18 @@ event:
 
 ## The work
 
-Memo, co-founder of cocoex and the artist behind this campaign, had been working with Cantine Volpi since 2021, when the winery asked him to design a limited-edition wine label. That one commission grew into something bigger: an artist-led charity-bottle programme that ran for four years straight and raised over €15,000 for four Italian NGOs, all before cocoex existed as a formal entity.
+Memo — co-founder of cocoex and the artist behind this campaign — had worked with Cantine Volpi since 2021, when the winery asked him to design a limited-edition wine label. That one commission grew into an artist-led charity-bottle programme that ran four years straight and raised over €15,000 for four Italian NGOs, all before cocoex existed as a formal entity. Stardust 001 was the first cycle run under the cocoex name: two series of paintings, and a collection card that carried the work and the cause to younger collectors.
 
-Stardust 001 was the first cycle run under the cocoex name.
+## The event
 
-Memo made two series of paintings. A collection card alongside them brought the work and the cause to younger collectors. The paintings were shown at an event at Cantine Volpi, with Anffas Tortona there to talk about what they do.
+Cantine Volpi · Volpedo, Italy · 2025
+
+The paintings were shown at Cantine Volpi, the organic estate that had backed the programme from the start, with Anffas Tortona present to talk about the work they do — the cause meeting the people who came to see the art.
 
 ## The Comet
 
-The Comets (the physical and digital pieces a campaign produces) were sold, and the proceeds split 50/50 between artist and NGO for this cycle.
+The Comets — the physical and digital pieces a campaign produces — were sold, and the proceeds split 50/50 between artist and NGO for this cycle.
 
 ## Impact
 
-€2,500 reached Anffas Tortona on 11 December 2025.
+€2,500 reached Anffas Tortona on 11 December 2025 — the first campaign to close the loop under the cocoex name, from a single wine label to a direct contribution.

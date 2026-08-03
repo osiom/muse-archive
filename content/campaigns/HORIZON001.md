@@ -47,23 +47,15 @@ question: How do we imagine models of sustainable tourism for the Colli Tortones
 
 *How do we imagine models of sustainable tourism for the Colli Tortonesi?*
 
-That was the question put to 33 people at the Vinili e Vinelli festival in September 2024. They came from ten countries: fourteen aged 21 to 35, eleven aged 36 to 55, and eight aged 56 to 70 and up. Nobody came to reach agreement. They came to imagine together.
-
-This was Horizon 001, cocoex's first community-led campaign and its first Future Lab.
+That was the question put to 33 people at the Vinili e Vinelli festival in September 2024 — a group from ten countries, spread across every age from 21 to 70 and up. Nobody came to reach agreement. They came to imagine together. This was Horizon 001, cocoex's first community-led campaign and its first Future Lab.
 
 ## The Future Lab
 
-A Future Lab isn't a normal workshop. It uses Robert Jungk's Zukunftswerkstatt method, where a community works through three phases: critique, utopia, and implementation. It's less about reaching consensus and more about seeing what people come up with when you give them time, structure, and room to speculate.
-
-The Future Lab for Horizon 001 ran during Vinili e Vinelli, the annual music and wine festival in the Colli Tortonesi hills.
-
-Memose Vithana took part as an embedded artist, inside the process rather than leading it.
+A Future Lab isn't a normal workshop. It uses Robert Jungk's Zukunftswerkstatt method, where a community works through three phases — critique, utopia, and implementation — less about consensus than about what people come up with when given time, structure, and room to speculate. Horizon 001's ran during Vinili e Vinelli, the annual music-and-wine festival in the Colli Tortonesi hills, with Memose Vithana taking part as an embedded artist — inside the process, not leading it.
 
 ## What the community proposed
 
-The group worked on sustainable tourism: the kind that serves the territory instead of using it up. They proposed slow-tourism routes linking local producers, built around exchange between generations, with younger visitors and older residents learning from each other.
-
-At the end of the Lab, the community voted on which NGO the campaign should support. They chose Slow Food Tortona.
+The group worked on sustainable tourism: the kind that serves the territory instead of using it up. They proposed slow-tourism routes linking local producers, built around exchange between generations — younger visitors and older residents learning from each other. At the end of the Lab, the community voted on which NGO the campaign should support, and chose Slow Food Tortona.
 
 ## The report
 
@@ -71,8 +63,8 @@ cocoex wrote up a formal report on the Future Lab and delivered it to Slow Food 
 
 ## What came after
 
-About half the Horizon 001 group met again at a cocoex event at Cantine Volpi the next summer, in 2025. The community kept going after the festival ended, which was the whole idea.
+About half the group met again at a cocoex event at Cantine Volpi the next summer, in 2025 — the community kept going after the festival ended, which was the whole idea.
 
 ## Impact
 
-The community's proposals reached Slow Food Tortona through a formal report, and the organisation built the vision into its planning.
+The community's proposals reached Slow Food Tortona through a formal report, and the organisation built the vision into its planning — imagination turned into something a real organisation could act on.

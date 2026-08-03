@@ -1,10 +1,11 @@
 ---
-title: Practicing Futures
+title: Practising Futures
 muse: solis                # Well-being · #D48348 (derived from MUSES)
-status: upcoming
+status: closed
 year: 2026
 location:                  # list — one entry per place
-  - Colli Tortonesi · Italy
+  - Volpedo, Alessandria · Italy
+  - Montacuto, Alessandria · Italy
 hero: 1.jpg                # cover circle → assets/images/stardust002/
 images:                    # full gallery (page) + extra globe leaves
   - 2.jpg
@@ -13,30 +14,49 @@ images:                    # full gallery (page) + extra globe leaves
   - 5.jpg
 
 # Stardust factual block
-artist: 2 international + 2 local artists (residency)
-partner: Vinili & Vinelli
+artist: Pulkit Gandhi · Laura Marini · Ọládayọ Thomas · Raffaello Basiglio & Greta Poggi
+partner: Cantine Volpi · Terra Nuda
 ngo: Terra Nuda
 fundSplit: Per artist, agreed with cocoex
-fundsRaised:
-transferred: { amount: , to: , date: }
+fundsRaised: ~€400 (to date)
+transferred: { amount: ~€400, to: Terra Nuda, date: }
 event:
-  name: Practicing Futures
-  date: 9–11 July 2026
-  location: Colli Tortonesi · Italy
+  name: Vinili e Vinelli
+  date: 10–11 July 2026
+  location: La Zerba, Volpedo + Terra Nuda, Montacuto
 ---
 
 ## The work
 
 *How can art sustain the ground it stands on?*
 
-Practicing Futures is a residency and group show at the Vinili & Vinelli festival in the Colli Tortonesi. Two international and two local artists share a two-week residency, making large spatial works built to be sold, with the proceeds going back into the residency that made them.
+Four artists — two based in Berlin, two from the territory — met in the hills of Alessandria for two days of making in public. Under Solis, the Muse of well-being, cocoex curated a group show built around that one question, with each work asking something of the people in the room.
+
+**Pulkit Gandhi**, an Indian calligraphy artist based in Berlin, showed *L'Anima della Terra*: calligraphy in ink he made from walnut husks, formed from words participants gave him — each person's words become a figure. At its centre, a vessel the community filled with gifts from the land, a vine planted inside. It stays at Cascina La Zerba as a capsule of the two days.
+
+**Laura Marini**, a painter from the Tortona hills, brought canvases of the southern Piedmont landscape and a participatory sculpture that completed itself only through the hands that touched it — the local artist making room for the local community.
+
+**Ọládayọ Thomas**, a self-taught Nigerian painter based in Berlin, brought *Rewiring: A Ritual of the Inner Landscape*: alongside his paintings, he asked each person to name something they were ready to release and pin it to a collective canvas, burnt at the close — the ritual made real.
+
+**Raffaello Basiglio & Greta Poggi**, a local duo of composer and dancer, turned the audience into the instrument with *Soglia Attiva*, orchestrating the room to move and sound as one body — a single new voice standing in for a future not yet arrived.
 
 ## The event
 
-Vinili & Vinelli · Colli Tortonesi, Italy · 9–11 July 2026
+Vinili e Vinelli · La Zerba, Volpedo + Terra Nuda, Montacuto · 10–11 July 2026
 
-The work is made and shown across two sites: Cascina La Zerba, the Cantine Volpi organic estate in Volpedo, and Terra Nuda, the rural artist residency in Montacuto. The festival sets out to keep art and culture within reach of rural and remote communities, and cocoex helps make it happen.
+Day one opened among the vines at Cascina La Zerba, the Cantine Volpi estate in Volpedo. Day two moved up into the hills to Terra Nuda, the rural residency in Montacuto that hosted the international artists. Two sites, two registers — the winery and the residency, the valley and the hill.
 
 ## The Comet
 
-Each artist agrees with cocoex how much of the proceeds they keep and how much goes to Terra Nuda, the residency this campaign is raising money to sustain.
+Each artist agrees with cocoex how much of the proceeds they keep and how much goes to Terra Nuda, the local association that runs the artist residency this campaign sustains.
+
+## Impact
+
+Stardust 002 produced nothing for sale — its measure was what passed between people, and what stayed. International and local artists worked the same ground without blurring into one another; the exchange held its differences and was richer for it. Audiences didn't watch — they gave words and gifts, pinned what they were ready to release, moved and made sound. What stayed is literal: Pulkit's vessel remains at Cascina La Zerba, its vine rooting in what the community gave it. Across the festival, visitors were invited to support Terra Nuda — around €400 to date, a direct contribution to the ground that held the work.
+
+## Images
+
+Daily recaps, on cocoex Instagram:
+
+- [Day 1](https://www.instagram.com/p/DbV_Kb8gVea/)
+- [Day 2](https://www.instagram.com/p/DbgbkZBAJgv/)
