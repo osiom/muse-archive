@@ -186,16 +186,20 @@ export async function buildAtlas(items) {
   canvas.height = atlasSize * CELL;
   const ctx = canvas.getContext('2d'); // starts fully transparent — the disc is procedural
 
-  // preload every cell's foreground image (muse/muse-cta symbol or campaign hero)
+  // preload every cell's foreground image: the muse/muse-cta symbol, a FILTERED spacer's muse glyph
+  // (spacer.symbol is set only when a filter is active — buildItems), or a campaign hero.
   const imgs = await Promise.all(items.map((it) => {
-    const src = (it.kind === 'muse' || it.kind === 'muse-cta') ? it.symbol : it.hero;
+    const src = (it.kind === 'muse' || it.kind === 'muse-cta' || it.kind === 'spacer') ? it.symbol : it.hero;
     return src ? loadImage(src) : Promise.resolve(null);
   }));
 
   items.forEach((item, i) => {
     const ox = (i % atlasSize) * CELL;
     const oy = Math.floor(i / atlasSize) * CELL;
-    if (item.kind === 'spacer') return;   // decorative disc only — leave the cell transparent so just the procedural muse-colour disc shows
+    // spacer: decorative disc. With NO symbol → leave the cell transparent (just the procedural
+    // muse-colour disc). When FILTERED it carries the selected muse's symbol → draw the engraved
+    // glyph (drawMuseCell, full opacity — same as an active muse disc, not the muted CTA one).
+    if (item.kind === 'spacer') { if (item.symbol) drawMuseCell(ctx, ox, oy, imgs[i]); return; }
     if (item.kind === 'muse') drawMuseCell(ctx, ox, oy, imgs[i]);
     else if (item.kind === 'muse-cta') drawMuseCtaCell(ctx, ox, oy, imgs[i]); // dormant cause (G-H): muted muse symbol only
     else drawCampaignCell(ctx, ox, oy, item, imgs[i]);

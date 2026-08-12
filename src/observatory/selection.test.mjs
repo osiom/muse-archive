@@ -6,7 +6,7 @@
 //
 // Surfaces under test:
 //   • sample()          — seeded shuffle: stability, cap, no-mutation, no-loss.
-//   • filterCampaigns() — ANDed facets, geo regex over all geo fields, no-mutation.
+//   • filterCampaigns() — OR within a group / AND across groups, geo regex, no-mutation.
 //   • applySparseGuard() — threshold detection + pass-through items.
 
 import test from 'node:test';
@@ -123,7 +123,7 @@ test('sample: does not mutate its input array', () => {
   assert.deepEqual(slugs(input), before);
 });
 
-// ── filter: AND-logic across facets ──────────────────────────────────────────────
+// ── filter: OR within a group, AND across groups; geo regex ───────────────────────
 test('filter: empty options returns all (new array, order preserved)', () => {
   const out = filterCampaigns(FIXTURES, {});
   assert.deepEqual(slugs(out), slugs(FIXTURES));
@@ -144,6 +144,41 @@ test('filter: status alone', () => {
 
 test('filter: two facets combined are ANDed', () => {
   assert.deepEqual(slugs(filterCampaigns(FIXTURES, { muse: 'rabu', type: 'stardust' })), ['a', 'e']);
+});
+
+// ── filter: OR WITHIN a group (array facet), AND ACROSS groups ─────────────────────
+test('filter: array facet ORs within the group (muse: [rabu, volpe] → all)', () => {
+  // rabu → a,c,e · volpe → b,d · union preserves input order.
+  assert.deepEqual(slugs(filterCampaigns(FIXTURES, { muse: ['rabu', 'volpe'] })), ['a', 'b', 'c', 'd', 'e']);
+});
+
+test('filter: a one-element array behaves exactly like the scalar', () => {
+  assert.deepEqual(
+    slugs(filterCampaigns(FIXTURES, { muse: ['RABU'] })),
+    slugs(filterCampaigns(FIXTURES, { muse: 'RABU' })),
+  );
+});
+
+test('filter: array facet is case-insensitive per member', () => {
+  assert.deepEqual(slugs(filterCampaigns(FIXTURES, { status: ['CLOSED', 'Ongoing'] })), ['a', 'b', 'd', 'e']);
+});
+
+test('filter: ORed group still ANDs with another group', () => {
+  // status IN {closed,ongoing} → a,b,d,e; AND type=stardust → a,d,e.
+  assert.deepEqual(
+    slugs(filterCampaigns(FIXTURES, { status: ['closed', 'ongoing'], type: 'stardust' })),
+    ['a', 'd', 'e'],
+  );
+});
+
+test('filter: an empty array does not constrain (ignored like a null facet)', () => {
+  assert.deepEqual(slugs(filterCampaigns(FIXTURES, { muse: [], type: 'horizon' })), ['b', 'c']);
+  assert.deepEqual(slugs(filterCampaigns(FIXTURES, { muse: [] })), slugs(FIXTURES));
+});
+
+test('filter: blank entries inside an array are dropped', () => {
+  // ['', 'rabu', null] → effectively just rabu.
+  assert.deepEqual(slugs(filterCampaigns(FIXTURES, { muse: ['', 'rabu', null] })), ['a', 'c', 'e']);
 });
 
 test('filter: an absent/empty facet does not constrain', () => {

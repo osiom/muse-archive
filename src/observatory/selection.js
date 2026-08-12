@@ -218,16 +218,6 @@ export function arrangeOnGraph(pool, adjacency, count) {
 }
 
 /**
- * Exact case-insensitive string equality on a record field.
- * @param {*} value
- * @param {string} want
- * @returns {boolean}
- */
-function eqInsensitive(value, want) {
-  return value != null && String(value).toLowerCase() === want;
-}
-
-/**
  * Every geo string a record exposes, in one flat array. Today that's the `locations[]`
  * list plus the joined `location` display string. When structured geo (A-1) lands —
  * `{ city, region, country }` per place — those fields fold in here too, so the geo
@@ -265,30 +255,50 @@ function geoMatcher(query) {
 }
 
 /**
- * The campaigns matching ALL provided facets (ANDed). An absent/empty/null facet is
- * ignored (does not constrain); an empty options object returns everything. `muse`,
- * `type` and `status` are exact case-insensitive matches on the record field. `geo` is a
- * case-insensitive REGEX (substring fallback) tested against ANY of the record's geo
- * fields (`locations[]` + `location`, plus structured city/region/country when A-1 lands).
- * A record with no geo strings never matches a non-empty geo. Returns a NEW array with
- * input order preserved, and is NOT capped here — capping is the caller's job (feed the
- * result through sample() or slice to CAMPAIGN_CAP for the globe). Pure.
+ * Normalise a facet value into a lower-cased "wanted" set, or null if it doesn't constrain.
+ * Accepts a single string (one-value set) OR an array of strings (OR within the group):
+ * a record matches the facet if its field equals ANY member. Empty/blank entries are
+ * dropped; an empty result → null (facet ignored). This is what makes each group OR while
+ * the groups still AND in filterCampaigns.
+ * @param {string|string[]|null|undefined} value
+ * @returns {Set<string>|null}
+ */
+function wantedSet(value) {
+  const arr = Array.isArray(value) ? value : value != null ? [value] : [];
+  const cleaned = arr
+    .filter((v) => v != null && String(v).trim() !== '')
+    .map((v) => String(v).toLowerCase());
+  return cleaned.length ? new Set(cleaned) : null;
+}
+
+/**
+ * The campaigns matching every provided facet. Within a group the facet is OR (a record
+ * matches if its field equals ANY selected value); the groups AND with each other. An
+ * absent/empty/null facet is ignored (does not constrain); an empty options object returns
+ * everything. `muse`, `type` and `status` each accept a single string OR an array of strings
+ * (case-insensitive exact match on the record field). `geo` is a case-insensitive REGEX
+ * (substring fallback) tested against ANY of the record's geo fields (`locations[]` +
+ * `location`, plus structured city/region/country when A-1 lands). A record with no geo
+ * strings never matches a non-empty geo. Returns a NEW array with input order preserved, and
+ * is NOT capped here — capping is the caller's job (feed the result through sample() or slice
+ * to CAMPAIGN_CAP for the globe). Pure.
  * @param {object[]} campaigns The full campaign list.
- * @param {{muse?:string, type?:string, geo?:string, status?:string}} [facets]
+ * @param {{muse?:string|string[], type?:string|string[], geo?:string, status?:string|string[]}} [facets]
  * @returns {object[]} New filtered array, uncapped, original order.
  */
 export function filterCampaigns(campaigns, { muse, type, geo, status } = {}) {
   const list = Array.isArray(campaigns) ? campaigns : [];
-  const wantMuse = muse ? String(muse).toLowerCase() : null;
-  const wantType = type ? String(type).toLowerCase() : null;
-  const wantStatus = status ? String(status).toLowerCase() : null;
+  const wantMuse = wantedSet(muse);
+  const wantType = wantedSet(type);
+  const wantStatus = wantedSet(status);
   const geoQuery = geo != null && String(geo).trim() !== '' ? String(geo) : null;
   const matchGeo = geoQuery ? geoMatcher(geoQuery) : null;
+  const has = (set, value) => value != null && set.has(String(value).toLowerCase());
 
   return list.filter((c) => {
-    if (wantMuse && !eqInsensitive(c.muse, wantMuse)) return false;
-    if (wantType && !eqInsensitive(c.type, wantType)) return false;
-    if (wantStatus && !eqInsensitive(c.status, wantStatus)) return false;
+    if (wantMuse && !has(wantMuse, c.muse)) return false;
+    if (wantType && !has(wantType, c.type)) return false;
+    if (wantStatus && !has(wantStatus, c.status)) return false;
     if (matchGeo && !geoFields(c).some(matchGeo)) return false;
     return true;
   });

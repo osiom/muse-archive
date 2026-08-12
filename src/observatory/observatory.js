@@ -152,11 +152,12 @@ const MUSE_HEXES = Object.values(MUSE_HEX);
 // same as how the globe already loads photos.
 const thumbUrl = (p) => (p ? p.replace(/\/([^/]+)\.[^.]+$/, '/thumb/$1.webp') : p);
 
-function buildItems(campaigns) {
+function buildItems(campaigns, { filtered = false } = {}) {
   const items = expandToLeaves(campaigns).map((c) => ({
     kind: 'campaign',
     title: c.title,
     cause: c.cause,
+    muse: c.muse,          // muse slug — used to give filtered surplus discs the matching glyph
     summary: c.summary,
     hex: c.hex,
     hero: thumbUrl(c.hero) || null, // the LEAF's photo as a small globe thumbnail (full-res stays on record pages)
@@ -171,9 +172,13 @@ function buildItems(campaigns) {
   // several discs (like a campaign's "leaves"), so every non-photo circle is a tappable invitation
   // and none reads as dead decoration (Memo). Cycling round-robin spreads the repeats ~evenly; the
   // per-muse `slug` ('cta-<muse>') gives each muse its own campKey so arrangeOnGraph keeps a muse's
-  // own repeats off adjacent vertices (different muses adjacent is fine). The CTAs sit on the globe
-  // regardless of the active filter — the gap they mark is a permanent archive fact.
-  if (dormantCTAs.length) {
+  // own repeats off adjacent vertices (different muses adjacent is fine).
+  //
+  // ONLY on the unfiltered landing globe: once the visitor has filtered (e.g. to one muse), the
+  // OTHER causes' invitations are noise, so we skip the CTAs and fall through to inert spacer discs
+  // for the surplus — the filtered globe shows just the matching campaigns' photos (Memo). The
+  // dormant-cause invitation still lives permanently in the list view (renderInvite).
+  if (dormantCTAs.length && !filtered) {
     for (let i = items.length, k = 0; i < CAMPAIGN_CAP; i++, k++) {
       const cta = dormantCTAs[k % dormantCTAs.length];
       items.push({
@@ -185,17 +190,38 @@ function buildItems(campaigns) {
     }
     return items;
   }
-  // Fallback (every cause activated → no dormant muses): fill the surplus with plain muse-colour
-  // discs rather than REPEATING photos. The sphere has CAMPAIGN_CAP vertices but rarely that many
-  // distinct campaign photos, so the surplus vertices become decorative discs (kind:'spacer',
-  // hero:null → procedural coloured disc, inert on tap). Named 'spacer' (not 'filler') to avoid
-  // colliding with the build's `filler` campaigns.json field (a content density-tile).
-  // Guarantees no photo is ever shown twice ("don't show the same circle"); colours cycle the seven
-  // muses; arrangeOnGraph keeps same-colour discs off adjacent vertices (campKey falls back to hex).
+  // Surplus fill with muse-colour discs rather than REPEATING photos. The sphere has CAMPAIGN_CAP
+  // vertices but rarely that many distinct campaign photos, so the surplus vertices become discs
+  // (kind:'spacer', hero:null → procedural coloured disc). Named 'spacer' (not 'filler') to avoid
+  // colliding with the build's `filler` campaigns.json field. Reached either as the zero-dormant
+  // fallback (every cause activated) OR whenever a filter is active (dormant CTAs suppressed above).
+  // Guarantees no photo is ever shown twice ("don't show the same circle").
+  //
+  // Palette + glyph: when FILTERED, the surplus reads as the SELECTED muse(s) — each spacer takes one
+  // of the matched set's hues AND the matching muse's engraved white symbol (drawMuseCell), so a
+  // filtered globe is all one cause's colour+mark instead of a plain rainbow. Unfiltered fallback
+  // cycles the seven muse colours with no glyph (purely decorative). arrangeOnGraph keeps same-colour
+  // discs off adjacent vertices (campKey falls back to hex).
+  const museSymbol = (slug) => (slug ? withBase('/assets/images/muse/' + slug + '-white.png') : null);
+  // Distinct {hex, symbol} of the matched leaves, in first-seen order (usually one per selected muse).
+  const filteredPalette = [];
+  if (filtered) {
+    const seen = new Set();
+    for (const it of items) {
+      if (!it.hex || seen.has(it.hex)) continue;
+      seen.add(it.hex);
+      filteredPalette.push({ hex: it.hex, symbol: museSymbol(it.muse) });
+    }
+  }
+  const palette = filteredPalette.length
+    ? filteredPalette
+    : MUSE_HEXES.map((hex) => ({ hex, symbol: null }));
   for (let i = items.length; i < CAMPAIGN_CAP; i++) {
+    const p = palette[i % palette.length];
     items.push({
       kind: 'spacer',
-      hex: MUSE_HEXES[i % MUSE_HEXES.length],
+      hex: p.hex,
+      symbol: p.symbol,               // set when filtered → atlas draws the muse glyph; null → plain disc
       hero: null, url: null, hasPage: false,
       title: '', cause: null, summary: null, type: null, number: null, status: null, year: null,
     });
@@ -786,7 +812,9 @@ function initFilters(globe, allCampaigns) {
   const isOpen = () => panel.classList.contains('is-open');
 
   const pool = allCampaigns.filter((c) => !c.filler); // real entries only
-  const facets = { muse: null, type: null, status: null, geo: '' };
+  // muse/type/status are MULTI-select → arrays (OR within a group; groups AND — see filterCampaigns).
+  // geo stays a single free-text query. An empty array = the group doesn't constrain.
+  const facets = { muse: [], type: [], status: [], geo: '' };
   const seed = makeSeed(); // reuse the session seed so "clear" returns the SAME landing sample
 
   // Derive the option sets from the data (only offer facets that exist).
@@ -833,6 +861,15 @@ function initFilters(globe, allCampaigns) {
     return g;
   };
 
+  // Top "Clear" — a compact reset sitting ABOVE the Muse group, so the escape hatch is the
+  // first thing in the panel (the footer "Clear all" stays as the bottom peer). Both call the
+  // same clearAll(); this one is hidden until a filter is active (kept in sync in apply()).
+  const topClear = document.createElement('div');
+  topClear.className = 'filter-topclear';
+  topClear.innerHTML = '<button type="button" class="filter-clear filter-clear-top" hidden>Clear</button>';
+  panel.appendChild(topClear);
+  const topClearBtn = topClear.querySelector('.filter-clear-top');
+
   const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const gMuse = group('Muse', 'muse', muses, (m) => titleCase(m), museHex);
   const gType = group('comet-collab', 'type', types, (t) => TYPE_LABEL[t] || titleCase(t));
@@ -851,25 +888,27 @@ function initFilters(globe, allCampaigns) {
   geoWrap.appendChild(geoInput);
   panel.appendChild(geoWrap);
 
+  // Footer is just the match count now — the single "Clear" lives at the TOP of the panel.
   const footer = document.createElement('div');
   footer.className = 'filter-footer';
-  footer.innerHTML = '<span class="filter-count"></span><button type="button" class="filter-clear" hidden>Clear all</button>';
+  footer.innerHTML = '<span class="filter-count"></span>';
   panel.appendChild(footer);
   const countEl = footer.querySelector('.filter-count');
-  const clearBtn = footer.querySelector('.filter-clear');
 
-  const isActive = () => facets.muse || facets.type || facets.status || facets.geo.trim();
+  const isActive = () => facets.muse.length || facets.type.length || facets.status.length || facets.geo.trim();
 
   const apply = () => {
     const active = isActive();
     // No filter → the session-random landing sample. Any filter → the true matching set (S-2).
     const matched = active ? filterCampaigns(pool, facets) : pool;
     const forGlobe = active ? matched.slice(0, CAMPAIGN_CAP) : sample(pool, CAMPAIGN_CAP, seed);
-    const items = buildItems(forGlobe);
+    // When a filter is active the globe is a FOCUSED view — the other causes' dormant CTA discs
+    // would just be noise, so buildItems fills the surplus with inert spacers instead (Memo).
+    const items = buildItems(forGlobe, { filtered: !!active });
     globe.setItems(items);
     renderList(active ? matched : allCampaigns);
     countEl.textContent = active ? `${matched.length} match${matched.length === 1 ? '' : 'es'}` : '';
-    clearBtn.hidden = !active;
+    topClearBtn.hidden = !active;
     wrap.classList.toggle('is-open', isOpen());
     // Filtering never changes the view — the globe is the archive to explore, so a filter
     // stays on the globe (even at 1–2 matches). Switching to the list is left to the toggle.
@@ -879,9 +918,11 @@ function initFilters(globe, allCampaigns) {
     const b = e.target.closest('.filter-chip');
     if (!b) return;
     const { group: key, value } = b.dataset;
-    facets[key] = facets[key] === value ? null : value; // single-select per group, toggle off
+    const sel = facets[key];
+    const at = sel.indexOf(value);
+    if (at === -1) sel.push(value); else sel.splice(at, 1); // multi-select per group, toggle in/out
     for (const sib of panel.querySelectorAll(`.filter-chip[data-group="${key}"]`)) {
-      sib.setAttribute('aria-pressed', String(sib.dataset.value === facets[key]));
+      sib.setAttribute('aria-pressed', String(sel.includes(sib.dataset.value)));
     }
     apply();
   });
@@ -892,13 +933,16 @@ function initFilters(globe, allCampaigns) {
     geoT = setTimeout(() => { facets.geo = geoInput.value; apply(); }, 180);
   });
 
-  clearBtn.addEventListener('click', () => {
-    facets.muse = facets.type = facets.status = null;
+  const clearAll = () => {
+    facets.muse = [];
+    facets.type = [];
+    facets.status = [];
     facets.geo = '';
     geoInput.value = '';
     for (const c of panel.querySelectorAll('.filter-chip')) c.setAttribute('aria-pressed', 'false');
     apply();
-  });
+  };
+  topClearBtn.addEventListener('click', clearAll);
 
   const setOpen = (open) => {
     panel.classList.toggle('is-open', open);
@@ -972,8 +1016,10 @@ function renderList(campaigns) {
   if (!ul) return;
   ul.innerHTML = '';
 
-  // globe-only density tiles aren't real archive entries — keep the list honest (A-4)
-  const rows = campaigns.filter((c) => !c.filler).slice().sort(listSort);
+  // globe-only density tiles aren't real archive entries — keep the list honest (A-4). Closed
+  // campaigns are hidden from the list entirely (Memo): the list is a forward-looking board of
+  // what's upcoming/ongoing, with the "muses without a campaign yet" invite section beneath it.
+  const rows = campaigns.filter((c) => !c.filler && c.status !== 'closed').slice().sort(listSort);
 
   rows.forEach((c, i) => {
     const li = listRow(c);

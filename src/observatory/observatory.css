@@ -744,6 +744,16 @@ body.globe-active .filter-wrap { display: flex; }
 }
 .filter-clear[hidden] { display: none; }
 
+/* Top "Clear" — a compact reset above the Muse group; right-aligned so it doesn't crowd the
+   first facet label. Reuses .filter-clear styling; hidden until a filter is active. */
+.filter-topclear {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 14px;             /* reserve the row so groups don't jump when it toggles */
+  margin-bottom: 4px;
+}
+.filter-topclear:has(.filter-clear[hidden]) { min-height: 0; margin-bottom: 0; }
+
 /* Mobile: the rail sits BOTTOM-CENTRED (not the left edge), pill + zoom side by side, and
    the facet panel opens UPWARD + centred (the desktop right-opening panel would overflow a
    narrow viewport). Desktop keeps the left rail untouched. */
