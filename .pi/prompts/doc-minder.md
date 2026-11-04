@@ -1,8 +1,5 @@
 ---
-name: doc-minder
 description: Reconcile the docs/ set with the actual code, decisions, and content so the documentation doesn't rot. Reports drift and updates what's stale.
-user-invocable: true
-allowed-tools: Bash, Read, Edit, Grep, Glob
 argument-hint: "[optional: a specific doc or area to focus on, e.g. 'data-schema' or 'globe']"
 ---
 

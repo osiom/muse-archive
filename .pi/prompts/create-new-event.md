@@ -1,8 +1,5 @@
 ---
-name: create-new-event
 description: Scaffold a new campaign — auto-number it, interview for the fields, write the content/campaigns/TYPE+NNN.md file, and create its image folder. Inherits everything derivable; asks only for what it can't.
-user-invocable: true
-allowed-tools: Bash, Read, Write, Glob
 argument-hint: "[optional: stardust | horizon]"
 ---
 

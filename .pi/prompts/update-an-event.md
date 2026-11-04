@@ -1,8 +1,5 @@
 ---
-name: update-an-event
 description: Edit an existing campaign — pick the campaign, show its current values, ask which parts to change (frontmatter fields, the type-specific factual block, or a body section), rewrite only those, then rebuild and report. Never renames, never touches src/.
-user-invocable: true
-allowed-tools: Bash, Read, Write, Edit, Glob
 argument-hint: "[optional: slug or filename, e.g. stardust002 or STARDUST002.md]"
 ---
 

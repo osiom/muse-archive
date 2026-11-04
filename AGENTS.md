@@ -47,6 +47,10 @@ Layers 1–3 are pure data/logic (no WebGL, testable, device-independent). Build
   globe; Safari is eyeballed by Memo (no screencapture on this host).
 - **Keep docs fresh:** after meaningful changes, run `/doc-minder` to reconcile `docs/` with the code.
 
+## Workflows
+- Add a campaign → `/create-new-event`. Edit one → `/update-an-event`.
+- Docs drift → `/doc-minder`. Build/verify/ship checks → `build-and-verify` skill.
+
 ## Tech
 
 Vanilla JS (no frameworks, by rule) · WebGL2 + `gl-matrix` (globe) · Vite (build + dev) ·
