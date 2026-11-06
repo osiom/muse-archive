@@ -1,58 +1,38 @@
-# CLAUDE.md — Muse Archive
+# muse-archive — agent context
+
+_Shared rules (Pi + Hermes): `../AGENTS.md` (gh/). Read it if it isn't in your context._
 
 cocoex's public **campaign archive**: markdown campaigns → a JSON index + static record
-pages, presented through a WebGL globe (the "wow" view) and a grid/list (find/scan).
-No backend server, no database, no auth.
+pages, shown through a WebGL globe (the "wow" view) and a grid/list (find/scan). No
+backend, no database, no auth. Deploys to GitHub Pages (`vithana7.github.io/museobservatory/`)
+via `.github/workflows/deploy.yml` on push to `main`.
 
-## Read the docs first
+## Always-on constraints
+- **4 layers:** data (markdown frontmatter) → index (`campaigns.json`, single source of
+  truth) → selection (session-random sample + filters) → views (globe, grid, records).
+  Layers 1–3 are pure data/logic; the globe is a view fed a bounded subset, never the navigation.
+- **Foundation before art:** schema → selection → wire views → polish (A-3). Globe
+  device-polish is frozen until layers 1–3 are solid (G-D).
+- **Markdown is the source of truth.** No server/DB; if file editing becomes the bottleneck,
+  add a git-CMS (Decap/Tina), not Strapi (B-1).
+- Vanilla JS only (no frameworks). `gray-matter`/`marked`/`sharp` are build-time only.
+- Don't commit unless asked. Working branch: `main`.
+- Verify empirically: headless Chrome (SwiftShader) + the `?`-gated dev hooks; Safari is
+  eyeballed by Memo (no screencapture on this host).
 
-The current spec lives in `docs/` — read it before changing anything:
-- **`docs/architecture.md`** — the 4-layer model, data flow, backend/frontend rationale. Start here.
-- **`docs/data-schema.md`** — frontmatter + `campaigns.json` contracts + structured geo.
-- **`docs/frontend.md`** — the views (globe + grid) + the selection layer (layer 3) + securing plan.
-- **`docs/decisions.md`** — every locked decision, with *why*.
-- **`docs/questions.md`** — the living list of open questions + things still to sort.
-- **`docs/archive/`** — history (8 rounds of globe iteration) + the living issue tracker. Not current spec.
-
-## Run
-
-```bash
-./dev.sh           # dev server (hot-reload)
-./dev.sh preview   # production build + preview ("what actually ships")
-```
-
-Deploys to GitHub Pages (`vithana7.github.io/museobservatory/`) via
-`.github/workflows/deploy.yml` on push to `main` — static `dist/`, no backend (DEPLOY-1).
-
-## The 4-layer mental model
-
-```
-LAYER 4 · VIEWS      globe · grid · record pages        ← artistic polish
-LAYER 3 · SELECTION  session-random sample + filters    ← the scaling engine (built + wired)
-LAYER 2 · INDEX      campaigns.json (compiled)          ← single source of truth
-LAYER 1 · DATA       markdown frontmatter               ← bedrock
-```
-
-Layers 1–3 are pure data/logic (no WebGL, testable, device-independent). Build them solid
-*before* the visual layer. The globe is a *view* fed a bounded subset — never the navigation.
-
-## Standing rules
-
-- **Foundation before art.** Build order is schema → selection layer → wire views → polish (decision A-3).
-- **Globe device-polish is frozen** until layers 1–3 are solid (decision G-D).
-- **Markdown is the source of truth.** Don't introduce a server/DB; if editing-by-file
-  becomes the bottleneck, add a git-CMS (Decap/Tina), not Strapi (decision B-1).
-- **Do not commit unless asked.** Working branch: `main`.
-- **Verify empirically** — headless Chrome (SwiftShader) + the `?`-gated dev hooks for the
-  globe; Safari is eyeballed by Memo (no screencapture on this host).
-- **Keep docs fresh:** after meaningful changes, run `/doc-minder` to reconcile `docs/` with the code.
+## Where to look (read on demand)
+- `docs/architecture.md` — 4-layer model, data flow. Start here.
+- `docs/data-schema.md` — frontmatter + `campaigns.json` contracts + structured geo.
+- `docs/frontend.md` — globe + grid views, selection layer, securing plan.
+- `docs/decisions.md` — locked decisions with *why*; `docs/questions.md` — open questions.
+- `docs/archive/` — history + issue tracker. Not current spec.
 
 ## Workflows
-- Add a campaign → `/create-new-event`. Edit one → `/update-an-event`.
-- Docs drift → `/doc-minder`. Build/verify/ship checks → `build-and-verify` skill.
+- Add a campaign → `/create-new-event` (`.pi/prompts/create-new-event.md`). Edit one →
+  `/update-an-event` (`.pi/prompts/update-an-event.md`).
+- Docs drift (after meaningful changes) → `/doc-minder` (`.pi/prompts/doc-minder.md`).
+- Build/verify/ship checks → `build-and-verify` skill (`.pi/skills/build-and-verify/SKILL.md`).
 
-## Tech
-
-Vanilla JS (no frameworks, by rule) · WebGL2 + `gl-matrix` (globe) · Vite (build + dev) ·
-`gray-matter` + `marked` + `sharp` (build-time only — markdown parse + globe-tile thumbnails;
-never shipped to the client).
+## Conventions
+- `./dev.sh` (dev, hot-reload); `./dev.sh preview` (production build — what ships).
+- Stack: vanilla JS · WebGL2 + `gl-matrix` · Vite.
